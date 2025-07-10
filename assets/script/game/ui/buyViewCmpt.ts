@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Button, Sprite, Event } from 'cc';
+import { _decorator, Component, Node, Button, Sprite, Event, find } from 'cc';
 import { BaseViewCmpt } from '../../components/baseViewCmpt';
 import { Bomb } from '../../const/enumConst';
 import { EventName } from '../../const/eventName';
@@ -12,10 +12,31 @@ import { ToolsHelper } from '../../utils/toolsHelper';
 import { WxManager } from '../../wx/wxManager';
 const { ccclass, property } = _decorator;
 
+interface ProductConfig {
+    amount: string;      // 支付金额（美元）
+    diamonds: number;    // 钻石数量
+    isFirstCharge?: boolean; // 是否是首充礼包
+}
+
 @ccclass('buyViewCmpt')
 export class BuyViewCmpt extends BaseViewCmpt {
     private lbGold: Node = null;
     private content: Node = null;
+
+    // 商品配置
+    private readonly products: { [key: string]: ProductConfig } = {
+        'itemBtn1': { amount: '8', diamonds: 12 },
+        'itemBtn2': { amount: '20', diamonds: 40 },
+        'itemBtn3': { amount: '40', diamonds: 70 },
+        'itemBtn4': { amount: '80', diamonds: 140 },
+        'itemBtn5': { amount: '100', diamonds: 180 },
+        // 首充双倍礼包
+        'itemBtn6': { amount: '8', diamonds: 24, isFirstCharge: true },
+        'itemBtn7': { amount: '20', diamonds: 80, isFirstCharge: true },
+        'itemBtn8': { amount: '40', diamonds: 140, isFirstCharge: true },
+        'itemBtn9': { amount: '80', diamonds: 280, isFirstCharge: true },
+        'itemBtn10': { amount: '100', diamonds: 360, isFirstCharge: true }
+    };
 
     onLoad() {
         for (let i = 1; i < 11; i++) {
@@ -35,187 +56,99 @@ export class BuyViewCmpt extends BaseViewCmpt {
     }
 
     updateItemStatus() {
-        let gold = GlobalFuncHelper.getGold();
-        let bool = gold < 50;
-        let item1 = this.content.getChildByName('itemBtn1');
-        ToolsHelper.setNodeGray(item1, bool);
-
-        bool = gold < 10;
-        item1 = this.content.getChildByName('itemBtn4');
-        ToolsHelper.setNodeGray(item1, bool);
-        item1 = this.content.getChildByName('itemBtn5');
-        ToolsHelper.setNodeGray(item1, bool);
-        item1 = this.content.getChildByName('itemBtn7');
-        ToolsHelper.setNodeGray(item1, bool);
-        bool = gold < 10;
-        item1 = this.content.getChildByName('itemBtn6');
-        ToolsHelper.setNodeGray(item1, bool);
-    }
-
-    handleBtnEvent(btn: Node)  {
-        App.audio.play('button_click');
-        let gold = GlobalFuncHelper.getGold();
-        let bool = gold < 50;
-        let lv = LevelConfig.getCurLevel();
-        
-
-        
-        const btnName = btn.name;
-        // 先尝试调用支付测试
-        this.testPay("50", "道具包");
-
-
-        // 原有的游戏逻辑
-        switch (btnName) {
-            case 'itemBtn1':
-                if (bool) {
-                    App.view.showMsgTips("Diamond shortage");
-                    return;
-                }
-                GlobalFuncHelper.setGold(-50);
-                App.event.emit(EventName.Game.UpdataGold);
-                App.view.showMsgTips("Purchase successful");
-                GlobalFuncHelper.setBomb(Bomb.hor, 1)
-                GlobalFuncHelper.setBomb(Bomb.allSame, 1)
-                GlobalFuncHelper.setBomb(Bomb.bomb, 1)
-                break;
-            case 'itemBtn2':
-                App.event.emit(EventName.Game.Share, lv, false);
-                GlobalFuncHelper.setGold(12);
-                App.event.emit(EventName.Game.UpdataGold);
-                break;
-            case 'itemBtn3':
-                App.event.emit(EventName.Game.Share, lv, false);
-                GlobalFuncHelper.setGold(40);
-                App.event.emit(EventName.Game.UpdataGold);
-                break;
-            case 'itemBtn4':
-                bool = gold < 10;
-                if (bool) {
-                    App.view.showMsgTips("Diamond shortage");
-                    return;
-                }
-                GlobalFuncHelper.setGold(-10);
-                App.event.emit(EventName.Game.UpdataGold);
-                App.view.showMsgTips("Purchase successful");
-                GlobalFuncHelper.setBomb(Bomb.bomb, 1)
-                break;
-            case 'itemBtn5':
-                bool = gold < 10;
-                if (bool) {
-                    App.view.showMsgTips("Diamond shortage");
-                    return;
-                }
-                GlobalFuncHelper.setGold(-10);
-                App.event.emit(EventName.Game.UpdataGold);
-                App.view.showMsgTips("Purchase successful");
-                GlobalFuncHelper.setBomb(Bomb.hor, 1);
-                break;
-            case 'itemBtn6':
-                bool = gold < 10;
-                if (bool) {
-                    App.view.showMsgTips("Diamond shortage");
-                    return;
-                }
-                GlobalFuncHelper.setGold(-10);
-                App.event.emit(EventName.Game.UpdataGold);
-                App.view.showMsgTips("Purchase successful");
-                GlobalFuncHelper.setBomb(Bomb.allSame, 1)
-                break;
-            case 'itemBtn7':
-                bool = gold < 10;
-                if (bool) {
-                    App.view.showMsgTips("Diamond shortage");
-                    return;
-                }
-                GlobalFuncHelper.setGold(-10);
-                App.event.emit(EventName.Game.UpdataGold);
-                App.view.showMsgTips("Purchase successful");
-                GlobalFuncHelper.setHeart(1)
-                break;
-            case 'itemBtn8':
-                App.event.emit(EventName.Game.Share, lv, false);
-                GlobalFuncHelper.setGold(70);
-                App.event.emit(EventName.Game.UpdataGold);
-                break;
-            case 'itemBtn9':
-                App.event.emit(EventName.Game.Share, lv, false);
-                GlobalFuncHelper.setGold(140);
-                App.event.emit(EventName.Game.UpdataGold);
-                break;
-            case 'itemBtn10':
-                App.event.emit(EventName.Game.Share, lv, false);
-                GlobalFuncHelper.setGold(180);
-                App.event.emit(EventName.Game.UpdataGold);
-                break;
+        // 更新每个首充礼包按钮的状态
+        for (let i = 6; i <= 10; i++) {
+            const btn = this.content.getChildByName(`itemBtn${i}`);
+            if (btn) {
+                const hasFirstCharge = StorageHelper.getBooleanData(StorageHelperKey[`FirstChargeItem${i}`], false);
+                ToolsHelper.setNodeGray(btn, hasFirstCharge);
+            }
         }
-        this.updateItemStatus();
     }
 
-    // 支付测试功能
-    async testPay(amount: string, productInfo: string) {
-        try {
-            const payParams = {
-                shippingEmail: "aa@qq.com",
-                shippingPhone: "18811111111",
-                shippingCountry: "United States",
-                shippingState: "ccc",
-                shippingFirstName: "a",
-                shippingLastName: "b",
-                shippingAddress: "c",
-                apartment: "d",
-                shippingZipCode: "e",
-                shippingCity: "f",
-                currency: "1",
-                language: "en",
-                merNo: "100140",
-                returnURL: "123",
-                noticeUrl: "aaa",
-                tradeUrl: "bbb",
-                lastName: "b",
-                firstName: "a",
-                country: "United States",
-                state: "123",
-                city: "f",
-                address: "c",
-                zipCode: "e",
-                email: "aa@qq.com",
-                ip: "127.0.0.1",
-                cookie: "123",
-                phone: "18811111111",
-                cardBank: "sdfdghdh",
-                productInfo: "product_info",
-                nationalCode: "us",
-                cardTypeId: "1",
-                cardNum: "4111111111111111",
-                month: "09",
-                year: "2029",
-                cvv2: "123",
-                amount: "10.12"  // 使用固定的测试金额
-            };
+    async handleBtnEvent(btn: Node) {
+        find("Canvas/view/homeView/Mask").active = true;
+        App.audio.play('button_click');
+        const btnName = btn.name;
+        const product = this.products[btnName];
+        
+        if (!product) {
+            console.error('未找到商品配置:', btnName);
+            return;
+        }
 
-            const payManager = PayManager.getInstance();
-            if (!payManager) {
-                console.error('PayManager not initialized');
+        // 检查是否是首充礼包
+        if (product.isFirstCharge) {
+            const itemNumber = parseInt(btnName.replace('itemBtn', ''));
+            const storageKey = StorageHelperKey[`FirstChargeItem${itemNumber}`];
+            const hasFirstCharge = StorageHelper.getBooleanData(storageKey, false);
+            if (hasFirstCharge) {
+                App.view.showMsgTips("该首充礼包已购买");
                 return;
             }
+        }
 
-            console.log('发起支付请求，参数:', payParams);
-            const result = await payManager.requestPay(payParams);
-            console.log('支付结果:', result);
+        try {
+            // 发起支付
+            const result = await this.requestPayment(product.amount, `钻石礼包-${product.diamonds}钻石`);
             
-            if (result.code === 'R0000') {
+            if (result.code === 'P0001') {
                 // 支付成功
                 console.log('支付成功');
-                App.view.showMsgTips('支付成功');
+                
+                // 发放钻石
+                GlobalFuncHelper.setGold(product.diamonds);
+                App.event.emit(EventName.Game.UpdataGold);
+                
+                // 如果是首充礼包，标记对应礼包已购买
+                if (product.isFirstCharge) {
+                    const itemNumber = parseInt(btnName.replace('itemBtn', ''));
+                    const storageKey = StorageHelperKey[`FirstChargeItem${itemNumber}`];
+                    StorageHelper.setBooleanData(storageKey, true);
+                    this.updateItemStatus();
+                }
+                
+                App.view.showMsgTips(`购买成功，获得${product.diamonds}钻石`);
             } else {
                 // 支付失败
-                console.log('支付失败:', result.message);
+                console.log('支付失败:', result);
                 App.view.showMsgTips('支付失败: ' + result.message);
             }
         } catch (error) {
             console.error('支付请求失败:', error);
             App.view.showMsgTips('支付请求失败，请稍后重试');
+        }
+        find("Canvas/view/homeView/Mask").active = false;
+    }
+
+    // 支付请求
+    private async requestPayment(amount: string, productInfo: string) {
+        try {
+            const payParams = {
+                amount: amount,
+                currency: "1",  // 修改currency参数为"1"
+                productInfo: encodeURIComponent(productInfo),
+                email: "test@example.com",
+                firstName: "Test",
+                lastName: "User",
+                phone: "18888888888",
+                address: "Test Address",
+                city: "Test City",
+                state: "CA",
+                country: "United States",
+                zipCode: "12345"
+            };
+
+            const payManager = PayManager.getInstance();
+            if (!payManager) {
+                throw new Error('PayManager not initialized');
+            }
+
+            console.log('发起支付请求，参数:', payParams);
+            return await payManager.requestPay(payParams);
+        } catch (error) {
+            console.error('支付请求失败:', error);
+            throw error;
         }
     }
 }

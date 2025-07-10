@@ -42,6 +42,13 @@ class StorageKey {
     BombBomb = "BombBomb";
     BombAllSame = "BombAllSame";
     Heart = "Heart";
+    /** 首充状态 */
+    // HasFirstCharge = "HasFirstCharge";
+    FirstChargeItem6 = "FirstChargeItem6";  // 8美金首充礼包
+    FirstChargeItem7 = "FirstChargeItem7";  // 20美金首充礼包
+    FirstChargeItem8 = "FirstChargeItem8";  // 40美金首充礼包
+    FirstChargeItem9 = "FirstChargeItem9";  // 80美金首充礼包
+    FirstChargeItem10 = "FirstChargeItem10";  // 100美金首充礼包
 }
 
 class Helper {
