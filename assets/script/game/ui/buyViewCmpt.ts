@@ -1,9 +1,10 @@
-import { _decorator, Component, Node, Button, Sprite } from 'cc';
+import { _decorator, Component, Node, Button, Sprite, Event } from 'cc';
 import { BaseViewCmpt } from '../../components/baseViewCmpt';
 import { Bomb } from '../../const/enumConst';
 import { EventName } from '../../const/eventName';
 import { LevelConfig } from '../../const/levelConfig';
 import { App } from '../../core/app';
+import { PayManager } from '../../core/payManager';
 import { CocosHelper } from '../../utils/cocosHelper';
 import { GlobalFuncHelper } from '../../utils/globalFuncHelper';
 import { StorageHelper, StorageHelperKey } from '../../utils/storageHelper';
@@ -15,6 +16,7 @@ const { ccclass, property } = _decorator;
 export class BuyViewCmpt extends BaseViewCmpt {
     private lbGold: Node = null;
     private content: Node = null;
+
     onLoad() {
         for (let i = 1; i < 11; i++) {
             this[`onClick_itemBtn${i}`] = this.handleBtnEvent.bind(this);
@@ -25,10 +27,6 @@ export class BuyViewCmpt extends BaseViewCmpt {
         App.event.on(EventName.Game.UpdataGold, this.evtUpdateGold, this);
         this.evtUpdateGold();
         this.updateItemStatus();
-    }
-
-    loadExtraData() {
-        App.audio.play('UI_PopUp');
     }
 
     evtUpdateGold() {
@@ -54,13 +52,21 @@ export class BuyViewCmpt extends BaseViewCmpt {
         ToolsHelper.setNodeGray(item1, bool);
     }
 
-    handleBtnEvent(btn: Node) {
+    handleBtnEvent(btn: Node)  {
         App.audio.play('button_click');
         let gold = GlobalFuncHelper.getGold();
         let bool = gold < 50;
         let lv = LevelConfig.getCurLevel();
-        console.log(btn.name);
-        switch (btn.name) {
+        
+
+        
+        const btnName = btn.name;
+        // 先尝试调用支付测试
+        this.testPay("50", "道具包");
+
+
+        // 原有的游戏逻辑
+        switch (btnName) {
             case 'itemBtn1':
                 if (bool) {
                     App.view.showMsgTips("Diamond shortage");
@@ -144,5 +150,47 @@ export class BuyViewCmpt extends BaseViewCmpt {
                 break;
         }
         this.updateItemStatus();
+    }
+
+    // 支付测试功能
+    async testPay(amount: string, productInfo: string) {
+        try {
+            const payParams = {
+                amount: amount,
+                currency: "1",   // 货币类型
+                productInfo: productInfo,
+                email: "test@example.com",
+                firstName: "Player",
+                lastName: "Test",
+                phone: "1234567890",
+                address: "Test Address",
+                city: "Test City",
+                state: "Test State",
+                country: "United States",
+                zipCode: "12345"
+            };
+
+            const payManager = PayManager.getInstance();
+            if (!payManager) {
+                console.error('PayManager not initialized');
+                return;
+            }
+
+            const result = await payManager.requestPay(payParams);
+            console.log('支付结果:', result);
+            
+            if (result.code === 'R0000') {
+                // 支付成功
+                console.log('支付成功');
+                App.view.showMsgTips('支付成功');
+            } else {
+                // 支付失败
+                console.log('支付失败:', result.message);
+                App.view.showMsgTips('支付失败: ' + result.message);
+            }
+        } catch (error) {
+            console.error('支付请求失败:', error);
+            App.view.showMsgTips('支付请求失败，请稍后重试');
+        }
     }
 }

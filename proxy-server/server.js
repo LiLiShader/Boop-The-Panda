@@ -1,0 +1,75 @@
+const express = require('express');
+const cors = require('cors');
+const axios = require('axios');
+const bodyParser = require('body-parser');
+const querystring = require('querystring');
+
+const app = express();
+const port = 3000;
+
+// 启用 CORS，允许所有来源
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// 解析 JSON 请求体
+app.use(bodyParser.json());
+// 解析 URL 编码的请求体
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// 支付代理接口
+app.post('/api/pay', async (req, res) => {
+    console.log('收到支付请求，请求体:', JSON.stringify(req.body, null, 2));
+    console.log('请求头:', JSON.stringify(req.headers, null, 2));
+
+    try {
+        // 将 JSON 数据转换为 URL 编码格式
+        const formData = querystring.stringify(req.body);
+        console.log('转换后的表单数据:', formData);
+
+        const response = await axios({
+            method: 'post',
+            url: 'https://testurl.carespay.com:28081/carespay/pay',
+            data: formData,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': 'application/json'
+            },
+            // 允许自签名证书（仅用于测试环境）
+            httpsAgent: new (require('https').Agent)({
+                rejectUnauthorized: false
+            })
+        });
+        
+        console.log('支付服务器响应:', response.data);
+        res.json(response.data);
+    } catch (error) {
+        console.error('代理请求失败:', error.message);
+        if (error.response) {
+            console.error('错误响应数据:', error.response.data);
+            console.error('错误响应状态:', error.response.status);
+            console.error('错误响应头:', error.response.headers);
+        } else if (error.request) {
+            console.error('请求发送失败:', error.request);
+        }
+        
+        res.status(500).json({
+            code: 'ERROR',
+            message: error.message || '代理请求失败'
+        });
+    }
+});
+
+// 健康检查接口
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok' });
+});
+
+app.listen(port, () => {
+    console.log(`代理服务器运行在 http://localhost:${port}`);
+    console.log('支持的接口:');
+    console.log('- POST /api/pay: 支付代理');
+    console.log('- GET /health: 健康检查');
+}); 

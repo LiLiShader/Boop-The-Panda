@@ -2,9 +2,9 @@
   "name": "pay-proxy-server",
   "version": "1.0.0",
   "description": "Payment proxy server for handling CORS",
-  "main": "proxy-server.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node proxy-server.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -12,4 +12,4 @@
     "axios": "^1.6.2",
     "body-parser": "^1.20.2"
   }
-}
+} 
