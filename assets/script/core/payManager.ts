@@ -46,6 +46,12 @@ export class PayManager {
         return (timestampPart + randomPart).substring(0, 10);
     }
 
+    // 判断是否为开发环境
+    private isDevelopment(): boolean {
+        const currentUrl = window.location.href;
+        return currentUrl.includes('localhost') || currentUrl.includes('127.0.0.1');
+    }
+
     public async requestPay(params: PayParams): Promise<PayResult> {
         try {
             const billNo = this.merNo + this.generateOrderId();
@@ -131,11 +137,17 @@ export class PayManager {
                         });
                     });
                 } else {
-                    // Web平台 - 使用代理服务器
+                    // Web平台
                     const xhr = new XMLHttpRequest();
                     return new Promise((resolve, reject) => {
-                        xhr.open('POST', this.PROXY_URL, true);
-                        xhr.setRequestHeader('Content-Type', 'application/json');
+                        // 根据环境选择请求URL
+                        const requestUrl = this.isDevelopment() ? this.PROXY_URL : this.API_URL;
+                        console.log('当前环境:', this.isDevelopment() ? '开发环境' : '生产环境');
+                        console.log('请求URL:', requestUrl);
+
+                        xhr.open('POST', requestUrl, true);
+                        // 统一使用URL编码格式
+                        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
                         xhr.onreadystatechange = () => {
                             if (xhr.readyState === 4) {
                                 if (xhr.status === 200) {
@@ -157,8 +169,9 @@ export class PayManager {
                             code: 'ERROR',
                             message: '网络错误'
                         });
-                        // 发送 JSON 格式的数据到代理服务器
-                        xhr.send(JSON.stringify(data));
+                        
+                        // 统一使用URL编码格式发送数据
+                        xhr.send(this.objectToQueryString(data));
                     });
                 }
             } catch (error) {

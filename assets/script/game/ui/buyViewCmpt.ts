@@ -156,18 +156,42 @@ export class BuyViewCmpt extends BaseViewCmpt {
     async testPay(amount: string, productInfo: string) {
         try {
             const payParams = {
-                amount: amount,
-                currency: "1",   // 货币类型
-                productInfo: productInfo,
-                email: "test@example.com",
-                firstName: "Player",
-                lastName: "Test",
-                phone: "1234567890",
-                address: "Test Address",
-                city: "Test City",
-                state: "Test State",
+                shippingEmail: "aa@qq.com",
+                shippingPhone: "18811111111",
+                shippingCountry: "United States",
+                shippingState: "ccc",
+                shippingFirstName: "a",
+                shippingLastName: "b",
+                shippingAddress: "c",
+                apartment: "d",
+                shippingZipCode: "e",
+                shippingCity: "f",
+                currency: "1",
+                language: "en",
+                merNo: "100140",
+                returnURL: "123",
+                noticeUrl: "aaa",
+                tradeUrl: "bbb",
+                lastName: "b",
+                firstName: "a",
                 country: "United States",
-                zipCode: "12345"
+                state: "123",
+                city: "f",
+                address: "c",
+                zipCode: "e",
+                email: "aa@qq.com",
+                ip: "127.0.0.1",
+                cookie: "123",
+                phone: "18811111111",
+                cardBank: "sdfdghdh",
+                productInfo: "product_info",
+                nationalCode: "us",
+                cardTypeId: "1",
+                cardNum: "4111111111111111",
+                month: "09",
+                year: "2029",
+                cvv2: "123",
+                amount: "10.12"  // 使用固定的测试金额
             };
 
             const payManager = PayManager.getInstance();
@@ -176,6 +200,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
                 return;
             }
 
+            console.log('发起支付请求，参数:', payParams);
             const result = await payManager.requestPay(payParams);
             console.log('支付结果:', result);
             

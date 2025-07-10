@@ -14,25 +14,20 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// 解析 JSON 请求体
-app.use(bodyParser.json());
 // 解析 URL 编码的请求体
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // 支付代理接口
 app.post('/api/pay', async (req, res) => {
-    console.log('收到支付请求，请求体:', JSON.stringify(req.body, null, 2));
-    console.log('请求头:', JSON.stringify(req.headers, null, 2));
+    console.log('收到支付请求，请求体:', req.body);
+    console.log('请求头:', req.headers);
 
     try {
-        // 将 JSON 数据转换为 URL 编码格式
-        const formData = querystring.stringify(req.body);
-        console.log('转换后的表单数据:', formData);
-
+        // 直接转发URL编码的数据
         const response = await axios({
             method: 'post',
             url: 'https://testurl.carespay.com:28081/carespay/pay',
-            data: formData,
+            data: req.body,
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Accept': 'application/json'
