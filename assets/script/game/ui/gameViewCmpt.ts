@@ -1253,31 +1253,54 @@ export class GameViewCmpt extends BaseViewCmpt {
     onClickAddButton(btnNode: Node) {
         App.audio.play('button_click');
         let type: number = -1;
+        let price: number = 10; // 默认价格为10金币
+        
         switch (btnNode.name) {
             case "addBtn1":
                 type = Bomb.bomb;
+                price = 10;
                 break;
             case "addBtn2":
                 type = Bomb.hor;
+                price = 10;
                 break;
             case "addBtn3":
                 type = Bomb.ver;
+                price = 10;
                 break;
             case "addBtn4":
                 type = Bomb.allSame;
+                price = 10;
                 break;
             case "addBtn5":
                 type = Bomb.hint;
+                price = 2;
                 break;
             case "addBtn6":
                 type = Bomb.extraSteps;
+                price = 50;
                 break;
             case "addBtn7":
                 type = Bomb.reshuffle;
+                price = 20;
                 break;
         }
-        App.backHome(false, PageIndex.shop);
-        // GlobalFuncHelper.setBomb(type,1);
+        
+        // 检查金币是否足够
+        let currentGold = GlobalFuncHelper.getGold();
+        if (currentGold >= price) {
+            // 扣除金币
+            GlobalFuncHelper.setGold(-price);
+            // 增加道具
+            GlobalFuncHelper.setBomb(type, 1);
+            // 更新UI
+            this.updateToolsInfo();
+            // 显示提示信息
+            App.view.showMsgTips("Purchase successful! +1 prop");
+        } else {
+            // 金币不足，显示提示
+            App.view.showMsgTips("Insufficient coins");
+        }
     }
     private isUsingBomb: boolean = false;
     /** 道具 */
