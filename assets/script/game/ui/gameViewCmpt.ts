@@ -1265,6 +1265,7 @@ export class GameViewCmpt extends BaseViewCmpt {
         
         
         let bombCount = GlobalFuncHelper.getBomb(type);
+        console.log(bombCount);
         if (bombCount <= 0) {
             App.view.showMsgTips("Insufficient number of props");
             return;
@@ -1293,13 +1294,11 @@ export class GameViewCmpt extends BaseViewCmpt {
         if (isHighlight) {
             // 取消原来可能的缩放动画
             Tween.stopAllByTarget(block.node);
-            block.node.getChildByName('icon').getComponent(Sprite).color = Color.RED;
             // 创建变大的动画
             const scaleUpAction = tween(block.node)
-                .to(0.3, { scale: v3(1.2, 1.2, 1.2) })
-                .to(0.3, { scale: v3(1.15, 1.15, 1.15) })
+                .to(0.3, { scale: v3(1.4, 1.4, 1.4) })
                 .to(0.3, { scale: v3(1.0, 1.0, 1.0) })
-                .to(0.3, { scale: v3(1.15, 1.15, 1.15) })
+                .to(0.3, { scale: v3(1.4, 1.4, 1.4) })
                 .to(0.3, { scale: v3(1.0, 1.0, 1.0) })
                 .union()
                 .repeat(6);  // 重复几次呼吸效果
@@ -1389,12 +1388,6 @@ export class GameViewCmpt extends BaseViewCmpt {
         // 使用常量类型
         let hintType = GameViewCmpt.HINT_TOOL_TYPE;
         let hintCount = GlobalFuncHelper.getBomb(hintType);
-        if (hintCount <= 0) {
-            App.view.showMsgTips("Insufficient number of props");
-            return;
-        }
-        // GlobalFuncHelper.setBomb(hintType, -1);
-        // this.updateToolsInfo && this.updateToolsInfo();
         await this.findHintMove();
     }
 }

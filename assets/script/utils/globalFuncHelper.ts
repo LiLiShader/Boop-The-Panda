@@ -111,6 +111,7 @@ class Helper {
     }
 
     setBomb(type: Bomb, count: number) {
+        console.log("setBomb", type, count);
         let baseNum = this.getBomb(type);
         let ct = baseNum + count >= 0 ? baseNum + count : 0;
         switch (type) {
