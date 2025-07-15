@@ -32,12 +32,14 @@ export class GameViewCmpt extends BaseViewCmpt {
     private lbTool2: Node = null;
     private lbTool3: Node = null;
     private lbTool4: Node = null;
-    private lbTool5: Node = null;
-    private addBtn5: Node = null;
+    private lbTool5: Node = null; // 提示道具数量标签
+    private lbTool6: Node = null; // 额外步数道具数量标签
     private addBtn1: Node = null;
     private addBtn2: Node = null;
     private addBtn3: Node = null;
     private addBtn4: Node = null;
+    private addBtn5: Node = null; // 提示道具添加按钮
+    private addBtn6: Node = null; // 额外步数道具添加按钮
     /**   */
     private gridPre: Prefab = null;
     private particlePre: Prefab = null;
@@ -61,10 +63,16 @@ export class GameViewCmpt extends BaseViewCmpt {
     private isWin: boolean = false;
     private clearHintHighlight: (() => void) | null = null; // 用于提示高亮回收
     onLoad() {
-        for (let i = 1; i < 6; i++) {
+        for (let i = 1; i < 7; i++) {
             this[`onClick_addBtn${i}`] = this.onClickAddButton.bind(this);
             this[`onClick_toolBtn${i}`] = this.onClickToolButton.bind(this);
         }
+        // 绑定提示道具和额外步数道具的点击事件
+        this[`onClick_addBtn5`] = this.onClickAddButton.bind(this);
+        this[`onClick_addBtn6`] = this.onClickAddButton.bind(this);
+        this[`onClick_toolBtn5`] = this.onClickToolButton.bind(this);
+        this[`onClick_toolBtn6`] = this.onClickToolButton.bind(this);
+        
         super.onLoad();
         App.audio.play('background1', SoundType.Music, true);
         this.gridMgr = this.viewList.get('center/gridManager').getComponent(gridManagerCmpt);
@@ -80,14 +88,16 @@ export class GameViewCmpt extends BaseViewCmpt {
         this.lbTool2 = this.viewList.get('bottom/proppenal/tool2/prompt/lbTool2');
         this.lbTool3 = this.viewList.get('bottom/proppenal/tool3/prompt/lbTool3');
         this.lbTool4 = this.viewList.get('bottom/proppenal/tool4/prompt/lbTool4');
-        this.lbTool5 = this.viewList.get('bottom/proppenal/tool5/prompt/lbTool5');
         this.addBtn1 = this.viewList.get('bottom/proppenal/tool1/addBtn1');
         this.addBtn2 = this.viewList.get('bottom/proppenal/tool2/addBtn2');
         this.addBtn3 = this.viewList.get('bottom/proppenal/tool3/addBtn3');
         this.addBtn4 = this.viewList.get('bottom/proppenal/tool4/addBtn4');
+        
+        // 尝试获取提示道具和额外步数道具的UI元素（如果存在）
+        this.lbTool5 = this.viewList.get('bottom/proppenal/tool5/prompt/lbTool5');
+        this.lbTool6 = this.viewList.get('bottom/proppenal/tool6/prompt/lbTool6');
         this.addBtn5 = this.viewList.get('bottom/proppenal/tool5/addBtn5');
-        // 注册提示道具按钮事件（假设按钮名为hintBtn）
-        // 提示：请确保UI层将hintBtn的点击事件绑定到onClickHintButton
+        this.addBtn6 = this.viewList.get('bottom/proppenal/tool6/addBtn6');
     }
 
     addEvents() {
@@ -144,16 +154,33 @@ export class GameViewCmpt extends BaseViewCmpt {
         let verCount = GlobalFuncHelper.getBomb(Bomb.ver);
         let allCount = GlobalFuncHelper.getBomb(Bomb.allSame);
         let hintCount = GlobalFuncHelper.getBomb(Bomb.hint);
+        let extraStepsCount = GlobalFuncHelper.getBomb(Bomb.extraSteps);
+        
         CocosHelper.updateLabelText(this.lbTool1, bombCount);
         CocosHelper.updateLabelText(this.lbTool2, horCount);
         CocosHelper.updateLabelText(this.lbTool3, verCount);
         CocosHelper.updateLabelText(this.lbTool4, allCount);
-        CocosHelper.updateLabelText(this.lbTool5, hintCount);
+        
+        // 如果UI中有提示道具和额外步数道具的标签，则更新它们
+        if (this.lbTool5) {
+            CocosHelper.updateLabelText(this.lbTool5, hintCount);
+        }
+        if (this.lbTool6) {
+            CocosHelper.updateLabelText(this.lbTool6, extraStepsCount);
+        }
+        
         this.addBtn1.active = bombCount <= 0;
         this.addBtn2.active = horCount <= 0;
         this.addBtn3.active = verCount <= 0;
         this.addBtn4.active = allCount <= 0;
-        this.addBtn5.active = hintCount <= 0;
+        
+        // 如果UI中有提示道具和额外步数道具的添加按钮，则更新它们
+        if (this.addBtn5) {
+            this.addBtn5.active = hintCount <= 0;
+        }
+        if (this.addBtn6) {
+            this.addBtn6.active = extraStepsCount <= 0;
+        }
     }
 
     /** 更新消除目标数量 */
@@ -1228,6 +1255,9 @@ export class GameViewCmpt extends BaseViewCmpt {
             case "addBtn5":
                 type = Bomb.hint;
                 break;
+            case "addBtn6":
+                type = Bomb.extraSteps;
+                break;
         }
         App.backHome(false, PageIndex.shop);
         // GlobalFuncHelper.setBomb(type,1);
@@ -1260,9 +1290,10 @@ export class GameViewCmpt extends BaseViewCmpt {
             case "toolBtn5":
                 type = Bomb.hint;
                 break;
+            case "toolBtn6":
+                type = Bomb.extraSteps;
+                break;
         }
-        
-        
         
         let bombCount = GlobalFuncHelper.getBomb(type);
         console.log(bombCount);
@@ -1278,9 +1309,47 @@ export class GameViewCmpt extends BaseViewCmpt {
             // 重置使用状态，以免影响findHintMove中的其他逻辑
             this.isUsingBomb = false;
             this.onClickHintButton();
-        }else{
+
+        }
+        // 特殊处理"额外加10步数"道具
+        else if (type === Bomb.extraSteps) {
+            // 重置使用状态
+            this.isUsingBomb = false;
+            this.onClickExtraStepsButton();
+
+        }
+        else{
             this.throwTools(type, pos);
         }
+        this.updateToolsInfo();
+    }
+    
+    /** 点击额外步数道具按钮 */
+    async onClickExtraStepsButton() {
+        App.audio.play('button_click');
+        
+        // 增加10步数
+        this.stepCount += 10;
+        this.updateStep();
+        
+        // 显示特效和提示
+        App.view.showMsgTips("+10 Steps!");
+        
+        // 播放特效（可选）
+        let particle = instantiate(this.particlePre);
+        this.effNode.addChild(particle);
+        let p1 = this.effNode.getComponent(UITransform).convertToNodeSpaceAR(this.lbStep.worldPosition);
+        particle.setPosition(p1);
+        particle.children.forEach(item => {
+            item.active = item.name == "move";
+        });
+        
+        // 2秒后销毁特效
+        this.scheduleOnce(() => {
+            particle.destroy();
+        }, 2);
+        
+        // 更新UI
         this.updateToolsInfo();
     }
 

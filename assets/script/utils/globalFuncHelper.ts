@@ -107,11 +107,12 @@ class Helper {
                 return +StorageHelper.getData(StorageHelperKey.BombAllSame);
             case Bomb.hint:
                 return +StorageHelper.getData(StorageHelperKey.BombHint);
+            case Bomb.extraSteps:
+                return +StorageHelper.getData(StorageHelperKey.BombExtraSteps);
         }
     }
 
     setBomb(type: Bomb, count: number) {
-        console.log("setBomb", type, count);
         let baseNum = this.getBomb(type);
         let ct = baseNum + count >= 0 ? baseNum + count : 0;
         switch (type) {
@@ -129,6 +130,9 @@ class Helper {
                 break;
             case Bomb.hint:
                 StorageHelper.setData(StorageHelperKey.BombHint, ct + "");
+                break;
+            case Bomb.extraSteps:
+                StorageHelper.setData(StorageHelperKey.BombExtraSteps, ct + "");
                 break;
         }
     }
