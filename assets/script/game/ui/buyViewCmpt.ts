@@ -102,7 +102,11 @@ export class BuyViewCmpt extends BaseViewCmpt {
     }
 
     async handleBtnEvent(btn: Node) {
-        find("Canvas/view/homeView/Mask").active = true;
+        if(find("Canvas/view/homeView/Mask")){
+            find("Canvas/view/homeView/Mask").active = true;
+        }else{
+            find("Canvas/view/gameView/Mask").active = true;
+        }
         App.audio.play('button_click');
         const btnName = btn.name;
         const product = this.products[btnName];
@@ -118,7 +122,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
             const storageKey = StorageHelperKey[`FirstChargeItem${itemNumber}`];
             const hasFirstCharge = StorageHelper.getBooleanData(storageKey, false);
             if (hasFirstCharge) {
-                App.view.showMsgTips("该首充礼包已购买");
+                App.view.showMsgTips("The first recharge gift package has been purchased");
                 return;
             }
         }
@@ -184,11 +188,18 @@ export class BuyViewCmpt extends BaseViewCmpt {
             }
         } catch (error) {
             console.error('支付请求失败:', error);
-            App.view.showMsgTips('支付请求失败，请稍后重试');
+            App.view.showMsgTips('Payment request failed, please try again later');
         }
-        find("Canvas/view/homeView/Mask").active = false;
-    }
 
+        if(find("Canvas/view/homeView/Mask")){
+            find("Canvas/view/homeView/Mask").active = false;
+        }else{
+            find("Canvas/view/gameView/Mask").active = false;
+        }
+    }
+    return(){
+        this.node.active = false;
+    }
     // 支付请求
     private async requestPayment(amount: string, productInfo: string) {
         try {

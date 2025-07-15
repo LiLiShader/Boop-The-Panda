@@ -1,4 +1,4 @@
-import { _decorator, Node, v3, UITransform, instantiate, Vec3, tween, Tween, Prefab, Vec2, Sprite, Color } from 'cc';
+import { _decorator, Node, v3, UITransform, instantiate, Vec3, tween, Tween, Prefab, Vec2, Sprite, Color, find } from 'cc';
 import { BaseViewCmpt } from '../../components/baseViewCmpt';
 import { Bomb, Constant, LevelData, PageIndex } from '../../const/enumConst';
 import { EventName } from '../../const/eventName';
@@ -1300,6 +1300,7 @@ export class GameViewCmpt extends BaseViewCmpt {
         } else {
             // 金币不足，显示提示
             App.view.showMsgTips("Insufficient coins");
+            find("Canvas/view/gameView/buy").active = true;
         }
     }
     private isUsingBomb: boolean = false;
