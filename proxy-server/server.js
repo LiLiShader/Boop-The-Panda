@@ -5,28 +5,30 @@ const bodyParser = require('body-parser');
 const querystring = require('querystring');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
+const PAY_API_URL = 'https://testurl.carespay.com:28081/carespay/pay';
 
-// 启用 CORS，允许所有来源
+// 允许所有域名访问的CORS配置
 app.use(cors({
-    origin: '*',
+    origin: '*',  // 允许所有域名访问
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// 解析 URL 编码的请求体
+// 解析application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // 支付代理接口
 app.post('/api/pay', async (req, res) => {
     console.log('收到支付请求，请求体:', req.body);
     console.log('请求头:', req.headers);
+    console.log('请求来源:', req.get('origin'));
 
     try {
         // 直接转发URL编码的数据
         const response = await axios({
             method: 'post',
-            url: 'https://testurl.carespay.com:28081/carespay/pay',
+            url: PAY_API_URL,
             data: req.body,
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -59,11 +61,16 @@ app.post('/api/pay', async (req, res) => {
 
 // 健康检查接口
 app.get('/health', (req, res) => {
-    res.json({ status: 'ok' });
+    res.json({ 
+        status: 'ok',
+        environment: process.env.NODE_ENV || 'development',
+        timestamp: new Date().toISOString()
+    });
 });
 
 app.listen(port, () => {
     console.log(`代理服务器运行在 http://localhost:${port}`);
+    console.log('当前环境:', process.env.NODE_ENV || 'development');
     console.log('支持的接口:');
     console.log('- POST /api/pay: 支付代理');
     console.log('- GET /health: 健康检查');

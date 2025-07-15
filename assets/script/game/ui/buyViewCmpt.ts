@@ -14,8 +14,12 @@ const { ccclass, property } = _decorator;
 
 interface ProductConfig {
     amount: string;      // 支付金额（美元）
-    diamonds: number;    // 钻石数量
+    diamonds?: number;    // 钻石数量
     isFirstCharge?: boolean; // 是否是首充礼包
+    bombBomb?: number;    // 周围爆炸道具数量
+    bombHor?: number;     // 横向炸弹道具数量
+    bombVer?: number;     // 竖向炸弹道具数量
+    bombAllSame?: number; // 同类型炸弹道具数量
 }
 
 @ccclass('buyViewCmpt')
@@ -35,11 +39,42 @@ export class BuyViewCmpt extends BaseViewCmpt {
         'itemBtn7': { amount: '20', diamonds: 80, isFirstCharge: true },
         'itemBtn8': { amount: '40', diamonds: 140, isFirstCharge: true },
         'itemBtn9': { amount: '80', diamonds: 280, isFirstCharge: true },
-        'itemBtn10': { amount: '100', diamonds: 360, isFirstCharge: true }
+        'itemBtn10': { amount: '100', diamonds: 360, isFirstCharge: true },
+        // 道具礼包
+        'itemBtn11': { 
+            amount: '200', 
+            diamonds: 50,
+            bombBomb: 3,
+            bombHor: 3,
+            bombVer: 5,
+            bombAllSame: 2
+        },
+        'itemBtn12': { 
+            amount: '500', 
+            diamonds: 200,
+            bombBomb: 5,
+            bombHor: 5,
+            bombVer: 10,
+            bombAllSame: 3
+        },
+        'itemBtn13': { 
+            amount: '1000',
+            bombBomb: 10,
+            bombHor: 10,
+            bombVer: 20,
+            bombAllSame: 5
+        },
+        'itemBtn14': { 
+            amount: '1500', 
+            diamonds: 1000,
+            bombBomb: 20,
+            bombHor: 20,
+            bombAllSame: 10
+        }
     };
 
     onLoad() {
-        for (let i = 1; i < 11; i++) {
+        for (let i = 1; i < 15; i++) {
             this[`onClick_itemBtn${i}`] = this.handleBtnEvent.bind(this);
         }
         super.onLoad();
@@ -97,8 +132,41 @@ export class BuyViewCmpt extends BaseViewCmpt {
                 console.log('支付成功');
                 
                 // 发放钻石
-                GlobalFuncHelper.setGold(product.diamonds);
-                App.event.emit(EventName.Game.UpdataGold);
+                if (product.diamonds) {
+                    GlobalFuncHelper.setGold(product.diamonds);
+                    App.event.emit(EventName.Game.UpdataGold);
+                }
+                
+                // 发放道具
+                let rewardText = [];
+                if (product.diamonds) {
+                    rewardText.push(`${product.diamonds} Diamonds`);
+                }
+                
+                // 发放炸弹道具
+                if (product.bombBomb) {
+                    const currentBombBomb = StorageHelper.getData(StorageHelperKey.BombBomb, 0);
+                    StorageHelper.setData(StorageHelperKey.BombBomb, currentBombBomb + product.bombBomb);
+                    rewardText.push(`${product.bombBomb} Bomb Blast`);
+                }
+                
+                if (product.bombHor) {
+                    const currentBombHor = StorageHelper.getData(StorageHelperKey.BombHor, 0);
+                    StorageHelper.setData(StorageHelperKey.BombHor, currentBombHor + product.bombHor);
+                    rewardText.push(`${product.bombHor} Horizontal Bomb`);
+                }
+                
+                if (product.bombVer) {
+                    const currentBombVer = StorageHelper.getData(StorageHelperKey.BombVer, 0);
+                    StorageHelper.setData(StorageHelperKey.BombVer, currentBombVer + product.bombVer);
+                    rewardText.push(`${product.bombVer} Vertical Bomb`);
+                }
+                
+                if (product.bombAllSame) {
+                    const currentBombAllSame = StorageHelper.getData(StorageHelperKey.BombAllSame, 0);
+                    StorageHelper.setData(StorageHelperKey.BombAllSame, currentBombAllSame + product.bombAllSame);
+                    rewardText.push(`${product.bombAllSame} Color Bomb`);
+                }
                 
                 // 如果是首充礼包，标记对应礼包已购买
                 if (product.isFirstCharge) {
@@ -108,11 +176,11 @@ export class BuyViewCmpt extends BaseViewCmpt {
                     this.updateItemStatus();
                 }
                 
-                App.view.showMsgTips(`购买成功，获得${product.diamonds}钻石`);
+                App.view.showMsgTips(`Purchase successful! You got ${rewardText.join(', ')}`);
             } else {
                 // 支付失败
                 console.log('支付失败:', result);
-                App.view.showMsgTips('支付失败: ' + result.message);
+                App.view.showMsgTips('Payment failed: ' + result.message);
             }
         } catch (error) {
             console.error('支付请求失败:', error);

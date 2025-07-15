@@ -295,7 +295,7 @@ export class GameViewCmpt extends BaseViewCmpt {
         if (this.isStartChange) return;
         if (this.isStartTouch) return;
         if (this.stepCount <= 0) {
-            App.view.showMsgTips("步数不足");
+            App.view.showMsgTips("Insufficient steps");
             App.view.openView(ViewName.Single.eResultView, this.level, false);
             return;
         }

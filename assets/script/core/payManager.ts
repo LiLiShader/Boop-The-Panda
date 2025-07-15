@@ -24,8 +24,14 @@ export interface PayResult {
 
 export class PayManager {
     private static instance: PayManager = null;
-    private readonly API_URL = 'https://testurl.carespay.com:28081/carespay/pay';
-    private readonly PROXY_URL = 'http://localhost:3000/api/pay'; // 代理服务器地址
+    // 移除直接访问的API_URL
+    // private readonly API_URL = 'https://testurl.carespay.com:28081/carespay/pay';
+    
+    // 统一使用代理服务器地址
+    private readonly PROXY_URL = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3000/api/pay'  // 本地开发环境
+        : `${window.location.protocol}//${window.location.hostname}:3000/api/pay`;  // 生产环境
+        
     private readonly merNo = '100140';
     private readonly md5Key = '^Qdb}Kzy';
 
@@ -44,12 +50,6 @@ export class PayManager {
         const timestampPart = Date.now().toString().slice(-5);
         const randomPart = Math.floor(Math.random() * 10000).toString().padStart(5, '0');
         return (timestampPart + randomPart).substring(0, 10);
-    }
-
-    // 判断是否为开发环境
-    private isDevelopment(): boolean {
-        const currentUrl = window.location.href;
-        return currentUrl.includes('localhost') || currentUrl.includes('127.0.0.1');
     }
 
     public async requestPay(params: PayParams): Promise<PayResult> {
@@ -101,79 +101,39 @@ export class PayManager {
             };
 
             try {
-                // 使用原生平台的网络请求来避免跨域问题
-                if (sys.platform === sys.Platform.ANDROID) {
-                    // Android平台使用JSB调用原生网络请求
-                    // @ts-ignore
-                    return jsb.reflection.callStaticMethod("org/cocos2dx/javascript/AppActivity", "sendPayRequest", "(Ljava/lang/String;Ljava/lang/String;)V", this.API_URL, JSON.stringify(data));
-                } else if (sys.platform === sys.Platform.IOS) {
-                    // iOS平台使用JSB调用原生网络请求
-                    // @ts-ignore
-                    return jsb.reflection.callStaticMethod("AppController", "sendPayRequest:withData:", this.API_URL, JSON.stringify(data));
-                } else if (sys.platform === sys.Platform.WECHAT_GAME) {
-                    // 微信小游戏平台使用wx.request
-                    return new Promise((resolve, reject) => {
-                        // @ts-ignore
-                        wx.request({
-                            url: this.API_URL,
-                            method: 'POST',
-                            data: data,
-                            header: {
-                                'content-type': 'application/x-www-form-urlencoded'
-                            },
-                            success: (res) => {
+                // 统一使用XMLHttpRequest发送请求
+                const xhr = new XMLHttpRequest();
+                return new Promise((resolve, reject) => {
+                    console.log('请求URL:', this.PROXY_URL);
+                    console.log('请求参数:', data);
+
+                    xhr.open('POST', this.PROXY_URL, true);
+                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    xhr.onreadystatechange = () => {
+                        if (xhr.readyState === 4) {
+                            if (xhr.status === 200) {
+                                const response = JSON.parse(xhr.responseText);
                                 resolve({
-                                    code: res.data.code || 'ERROR',
-                                    message: res.data.message || '支付失败',
-                                    data: res.data
+                                    code: response.code || 'ERROR',
+                                    message: response.message || '支付失败',
+                                    data: response
                                 });
-                            },
-                            fail: (err) => {
+                            } else {
                                 reject({
                                     code: 'ERROR',
-                                    message: err.errMsg || '支付请求失败'
+                                    message: xhr.statusText || '网络错误'
                                 });
                             }
-                        });
+                        }
+                    };
+                    xhr.onerror = () => reject({
+                        code: 'ERROR',
+                        message: '网络错误'
                     });
-                } else {
-                    // Web平台
-                    const xhr = new XMLHttpRequest();
-                    return new Promise((resolve, reject) => {
-                        // 根据环境选择请求URL
-                        const requestUrl = this.isDevelopment() ? this.PROXY_URL : this.API_URL;
-                        console.log('当前环境:', this.isDevelopment() ? '开发环境' : '生产环境');
-                        console.log('请求URL:', requestUrl);
-
-                        xhr.open('POST', requestUrl, true);
-                        // 统一使用URL编码格式
-                        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                        xhr.onreadystatechange = () => {
-                            if (xhr.readyState === 4) {
-                                if (xhr.status === 200) {
-                                    const response = JSON.parse(xhr.responseText);
-                                    resolve({
-                                        code: response.code || 'ERROR',
-                                        message: response.message || '支付失败',
-                                        data: response
-                                    });
-                                } else {
-                                    reject({
-                                        code: 'ERROR',
-                                        message: xhr.statusText || '网络错误'
-                                    });
-                                }
-                            }
-                        };
-                        xhr.onerror = () => reject({
-                            code: 'ERROR',
-                            message: '网络错误'
-                        });
-                        
-                        // 统一使用URL编码格式发送数据
-                        xhr.send(this.objectToQueryString(data));
-                    });
-                }
+                    
+                    // 统一使用URL编码格式发送数据
+                    xhr.send(this.objectToQueryString(data));
+                });
             } catch (error) {
                 console.error('支付请求失败:', error);
                 return {
