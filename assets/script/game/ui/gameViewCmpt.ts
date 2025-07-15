@@ -1,4 +1,4 @@
-import { _decorator, Node, v3, UITransform, instantiate, Vec3, tween, Prefab, Vec2, Sprite } from 'cc';
+import { _decorator, Node, v3, UITransform, instantiate, Vec3, tween, Tween, Prefab, Vec2, Sprite, Color } from 'cc';
 import { BaseViewCmpt } from '../../components/baseViewCmpt';
 import { Bomb, Constant, LevelData, PageIndex } from '../../const/enumConst';
 import { EventName } from '../../const/eventName';
@@ -32,6 +32,8 @@ export class GameViewCmpt extends BaseViewCmpt {
     private lbTool2: Node = null;
     private lbTool3: Node = null;
     private lbTool4: Node = null;
+    private lbTool5: Node = null;
+    private addBtn5: Node = null;
     private addBtn1: Node = null;
     private addBtn2: Node = null;
     private addBtn3: Node = null;
@@ -57,8 +59,9 @@ export class GameViewCmpt extends BaseViewCmpt {
     private curScore: number = 0;
     private starCount: number = 0;
     private isWin: boolean = false;
+    private clearHintHighlight: (() => void) | null = null; // 用于提示高亮回收
     onLoad() {
-        for (let i = 1; i < 5; i++) {
+        for (let i = 1; i < 6; i++) {
             this[`onClick_addBtn${i}`] = this.onClickAddButton.bind(this);
             this[`onClick_toolBtn${i}`] = this.onClickToolButton.bind(this);
         }
@@ -77,10 +80,14 @@ export class GameViewCmpt extends BaseViewCmpt {
         this.lbTool2 = this.viewList.get('bottom/proppenal/tool2/prompt/lbTool2');
         this.lbTool3 = this.viewList.get('bottom/proppenal/tool3/prompt/lbTool3');
         this.lbTool4 = this.viewList.get('bottom/proppenal/tool4/prompt/lbTool4');
+        this.lbTool5 = this.viewList.get('bottom/proppenal/tool5/prompt/lbTool5');
         this.addBtn1 = this.viewList.get('bottom/proppenal/tool1/addBtn1');
         this.addBtn2 = this.viewList.get('bottom/proppenal/tool2/addBtn2');
         this.addBtn3 = this.viewList.get('bottom/proppenal/tool3/addBtn3');
         this.addBtn4 = this.viewList.get('bottom/proppenal/tool4/addBtn4');
+        this.addBtn5 = this.viewList.get('bottom/proppenal/tool5/addBtn5');
+        // 注册提示道具按钮事件（假设按钮名为hintBtn）
+        // 提示：请确保UI层将hintBtn的点击事件绑定到onClickHintButton
     }
 
     addEvents() {
@@ -98,6 +105,7 @@ export class GameViewCmpt extends BaseViewCmpt {
         this.level = lv;
         this.data = await LevelConfig.getLevelData(lv);
         App.gameLogic.blockCount = this.data.blockCount;
+        
         this.setLevelInfo();
         if (!this.gridPre) {
             this.gridPre = await ResLoadHelper.loadPieces(ViewName.Pieces.grid);
@@ -135,14 +143,17 @@ export class GameViewCmpt extends BaseViewCmpt {
         let horCount = GlobalFuncHelper.getBomb(Bomb.hor);
         let verCount = GlobalFuncHelper.getBomb(Bomb.ver);
         let allCount = GlobalFuncHelper.getBomb(Bomb.allSame);
+        let hintCount = GlobalFuncHelper.getBomb(Bomb.hint);
         CocosHelper.updateLabelText(this.lbTool1, bombCount);
         CocosHelper.updateLabelText(this.lbTool2, horCount);
         CocosHelper.updateLabelText(this.lbTool3, verCount);
         CocosHelper.updateLabelText(this.lbTool4, allCount);
+        CocosHelper.updateLabelText(this.lbTool5, hintCount);
         this.addBtn1.active = bombCount <= 0;
         this.addBtn2.active = horCount <= 0;
         this.addBtn3.active = verCount <= 0;
         this.addBtn4.active = allCount <= 0;
+        this.addBtn5.active = hintCount <= 0;
     }
 
     /** 更新消除目标数量 */
@@ -1214,6 +1225,9 @@ export class GameViewCmpt extends BaseViewCmpt {
             case "addBtn4":
                 type = Bomb.allSame;
                 break;
+            case "addBtn5":
+                type = Bomb.hint;
+                break;
         }
         App.backHome(false, PageIndex.shop);
         // GlobalFuncHelper.setBomb(type,1);
@@ -1243,15 +1257,144 @@ export class GameViewCmpt extends BaseViewCmpt {
             case "toolBtn4":
                 type = Bomb.allSame;
                 break;
+            case "toolBtn5":
+                type = Bomb.hint;
+                break;
         }
+        
+        
+        
         let bombCount = GlobalFuncHelper.getBomb(type);
         if (bombCount <= 0) {
-            App.view.showMsgTips("道具数量不足");
+            App.view.showMsgTips("Insufficient number of props");
             return;
         }
         GlobalFuncHelper.setBomb(type, -1);
         let pos = btnNode.worldPosition;
-        this.throwTools(type, pos);
+        
+        // 特殊处理"提示"道具
+        if (type === Bomb.hint) {
+            // 重置使用状态，以免影响findHintMove中的其他逻辑
+            this.isUsingBomb = false;
+            this.onClickHintButton();
+        }else{
+            this.throwTools(type, pos);
+        }
         this.updateToolsInfo();
+    }
+
+    /** =================== 提示道具功能 =================== */
+    /** 提示道具类型常量（需与enumConst.ts保持一致） */
+    private static readonly HINT_TOOL_TYPE = 99;
+    /** 设置提示高亮（缩放动画） */
+    setHintHighlight(block: gridCmpt, isHighlight: boolean) {
+        if (!block || !block.node) return;
+        
+        if (isHighlight) {
+            // 取消原来可能的缩放动画
+            Tween.stopAllByTarget(block.node);
+            block.node.getChildByName('icon').getComponent(Sprite).color = Color.RED;
+            // 创建变大的动画
+            const scaleUpAction = tween(block.node)
+                .to(0.3, { scale: v3(1.2, 1.2, 1.2) })
+                .to(0.3, { scale: v3(1.15, 1.15, 1.15) })
+                .to(0.3, { scale: v3(1.0, 1.0, 1.0) })
+                .to(0.3, { scale: v3(1.15, 1.15, 1.15) })
+                .to(0.3, { scale: v3(1.0, 1.0, 1.0) })
+                .union()
+                .repeat(6);  // 重复几次呼吸效果
+            
+            // 开始动画
+            scaleUpAction.start();
+        } else {
+            // 取消动画并恢复原始大小
+            Tween.stopAllByTarget(block.node);
+            tween(block.node)
+                .to(0.2, { scale: v3(1.0, 1.0, 1.0) })
+                .start();
+        }
+    }
+
+    /** 查找一个可消除的移动并高亮显示 */
+    async findHintMove() {
+        // 取消之前的高亮
+        this.clearHintHighlight && this.clearHintHighlight();
+        let found = false;
+        let block1: gridCmpt = null;
+        let block2: gridCmpt = null;
+        // 记录高亮回收
+        let highlightList: gridCmpt[] = [];
+        // 遍历所有格子
+        for (let i = 0; i < this.H; i++) {
+            for (let j = 0; j < this.V; j++) {
+                let node1 = this.blockArr[i][j];
+                if (!node1) continue;
+                let g1 = node1.getComponent(gridCmpt);
+                // 只检查右邻和下邻
+                let dirs = [ [1,0], [0,1] ];
+                for (let d = 0; d < dirs.length; d++) {
+                    let ni = i + dirs[d][0];
+                    let nj = j + dirs[d][1];
+                    if (ni >= this.H || nj >= this.V) continue;
+                    let node2 = this.blockArr[ni][nj];
+                    if (!node2) continue;
+                    let g2 = node2.getComponent(gridCmpt);
+                    // 模拟交换
+                    this.changeData(g1, g2);
+                    // 检查g1/g2是否能三消
+                    let hor1 = this._checkHorizontal(g1);
+                    let ver1 = this._checkVertical(g1);
+                    let hor2 = this._checkHorizontal(g2);
+                    let ver2 = this._checkVertical(g2);
+                    let canMatch = (hor1.length >= 3 || ver1.length >= 3 || hor2.length >= 3 || ver2.length >= 3);
+                    // 还原交换
+                    this.changeData(g1, g2);
+                    if (canMatch) {
+                        block1 = g1;
+                        block2 = g2;
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) break;
+            }
+            if (found) break;
+        }
+        if (found && block1 && block2) {
+            // 使用新的方法设置高亮（变大动画）
+            this.setHintHighlight(block1, true);
+            this.setHintHighlight(block2, true);
+            highlightList.push(block1, block2);
+            // 打印找到的两个方块的坐标
+            console.log(`提示高亮方块: 方块1(h=${block1.h}, v=${block1.v})，方块2(h=${block2.h}, v=${block2.v})`);
+            // 2秒后自动取消高亮
+            this.clearHintHighlight = () => {
+                highlightList.forEach(b => this.setHintHighlight(b, false));
+                this.clearHintHighlight = null;
+            };
+            setTimeout(() => {
+                this.clearHintHighlight && this.clearHintHighlight();
+            }, 2000);
+            console.log("found");
+            return true;
+        } else {
+            App.view.showMsgTips("No available hints");
+            return false;
+        }
+    }
+
+    /** 点击提示道具按钮 */
+    async onClickHintButton() {
+        App.audio.play('button_click');
+        // 使用常量类型
+        let hintType = GameViewCmpt.HINT_TOOL_TYPE;
+        let hintCount = GlobalFuncHelper.getBomb(hintType);
+        if (hintCount <= 0) {
+            App.view.showMsgTips("Insufficient number of props");
+            return;
+        }
+        // GlobalFuncHelper.setBomb(hintType, -1);
+        // this.updateToolsInfo && this.updateToolsInfo();
+        await this.findHintMove();
     }
 }

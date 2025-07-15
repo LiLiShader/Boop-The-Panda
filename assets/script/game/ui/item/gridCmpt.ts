@@ -43,6 +43,7 @@ export class gridCmpt extends Component {
 
     /** 选中状态 */
     setSelected(bool: boolean) {
+        console.log("setSelected", bool);
         if (!this.isValid) return;
         this.node.getChildByName('icon').children.forEach(item => {
             if (item.active && item.getChildByName('s')) {

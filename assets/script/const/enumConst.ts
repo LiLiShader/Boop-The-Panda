@@ -125,6 +125,7 @@ export enum Bomb {
     bomb = 10,
     /** 消灭所有同一类型 */
     allSame = 11,
+    hint = 99 // 新增：提示道具
 }
 
 /** 页面跳转索引 */

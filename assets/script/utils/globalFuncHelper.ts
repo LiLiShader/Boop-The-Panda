@@ -105,6 +105,8 @@ class Helper {
                 return +StorageHelper.getData(StorageHelperKey.BombBomb);
             case Bomb.allSame:
                 return +StorageHelper.getData(StorageHelperKey.BombAllSame);
+            case Bomb.hint:
+                return +StorageHelper.getData(StorageHelperKey.BombHint);
         }
     }
 
@@ -123,6 +125,9 @@ class Helper {
                 break;
             case Bomb.allSame:
                 StorageHelper.setData(StorageHelperKey.BombAllSame, ct + "");
+                break;
+            case Bomb.hint:
+                StorageHelper.setData(StorageHelperKey.BombHint, ct + "");
                 break;
         }
     }

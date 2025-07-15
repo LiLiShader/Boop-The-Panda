@@ -42,6 +42,7 @@ class StorageKey {
     BombBomb = "BombBomb";
     BombAllSame = "BombAllSame";
     Heart = "Heart";
+    BombHint = 'BombHint'; // 新增：提示道具
     /** 首充状态 */
     // HasFirstCharge = "HasFirstCharge";
     FirstChargeItem6 = "FirstChargeItem6";  // 8美金首充礼包
@@ -106,6 +107,9 @@ class Helper {
         }
         if (!this.getData(StorageHelperKey.BombAllSame)) {
             this.setData(StorageHelperKey.BombAllSame, 3)
+        }
+        if (!this.getData(StorageHelperKey.BombHint)) {
+            this.setData(StorageHelperKey.BombHint, 3)
         }
         if (!this.getData(StorageHelperKey.Heart)) {
             this.setData(StorageHelperKey.Heart, 3)
