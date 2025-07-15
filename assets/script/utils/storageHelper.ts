@@ -44,6 +44,7 @@ class StorageKey {
     Heart = "Heart";
     BombHint = 'BombHint'; // 新增：提示道具
     BombExtraSteps = 'BombExtraSteps'; // 新增：额外加10步数道具
+    BombReshuffle = 'BombReshuffle'; // 新增：重新排列道具
     /** 首充状态 */
     // HasFirstCharge = "HasFirstCharge";
     FirstChargeItem6 = "FirstChargeItem6";  // 8美金首充礼包
@@ -114,6 +115,9 @@ class Helper {
         }
         if (!this.getData(StorageHelperKey.BombExtraSteps)) {
             this.setData(StorageHelperKey.BombExtraSteps, 3)
+        }
+        if (!this.getData(StorageHelperKey.BombReshuffle)) {
+            this.setData(StorageHelperKey.BombReshuffle, 3)
         }
         if (!this.getData(StorageHelperKey.Heart)) {
             this.setData(StorageHelperKey.Heart, 3)

@@ -34,12 +34,14 @@ export class GameViewCmpt extends BaseViewCmpt {
     private lbTool4: Node = null;
     private lbTool5: Node = null; // 提示道具数量标签
     private lbTool6: Node = null; // 额外步数道具数量标签
+    private lbTool7: Node = null; // 重新排列道具数量标签
     private addBtn1: Node = null;
     private addBtn2: Node = null;
     private addBtn3: Node = null;
     private addBtn4: Node = null;
     private addBtn5: Node = null; // 提示道具添加按钮
     private addBtn6: Node = null; // 额外步数道具添加按钮
+    private addBtn7: Node = null; // 重新排列道具添加按钮
     /**   */
     private gridPre: Prefab = null;
     private particlePre: Prefab = null;
@@ -63,15 +65,18 @@ export class GameViewCmpt extends BaseViewCmpt {
     private isWin: boolean = false;
     private clearHintHighlight: (() => void) | null = null; // 用于提示高亮回收
     onLoad() {
-        for (let i = 1; i < 7; i++) {
+        for (let i = 1; i < 5; i++) {
             this[`onClick_addBtn${i}`] = this.onClickAddButton.bind(this);
             this[`onClick_toolBtn${i}`] = this.onClickToolButton.bind(this);
         }
         // 绑定提示道具和额外步数道具的点击事件
         this[`onClick_addBtn5`] = this.onClickAddButton.bind(this);
         this[`onClick_addBtn6`] = this.onClickAddButton.bind(this);
+        this[`onClick_addBtn7`] = this.onClickAddButton.bind(this);
         this[`onClick_toolBtn5`] = this.onClickToolButton.bind(this);
         this[`onClick_toolBtn6`] = this.onClickToolButton.bind(this);
+        this[`onClick_toolBtn7`] = this.onClickToolButton.bind(this);
+
         
         super.onLoad();
         App.audio.play('background1', SoundType.Music, true);
@@ -96,8 +101,10 @@ export class GameViewCmpt extends BaseViewCmpt {
         // 尝试获取提示道具和额外步数道具的UI元素（如果存在）
         this.lbTool5 = this.viewList.get('bottom/proppenal/tool5/prompt/lbTool5');
         this.lbTool6 = this.viewList.get('bottom/proppenal/tool6/prompt/lbTool6');
+        this.lbTool7 = this.viewList.get('bottom/proppenal/tool7/prompt/lbTool7');
         this.addBtn5 = this.viewList.get('bottom/proppenal/tool5/addBtn5');
         this.addBtn6 = this.viewList.get('bottom/proppenal/tool6/addBtn6');
+        this.addBtn7 = this.viewList.get('bottom/proppenal/tool7/addBtn7');
     }
 
     addEvents() {
@@ -155,6 +162,7 @@ export class GameViewCmpt extends BaseViewCmpt {
         let allCount = GlobalFuncHelper.getBomb(Bomb.allSame);
         let hintCount = GlobalFuncHelper.getBomb(Bomb.hint);
         let extraStepsCount = GlobalFuncHelper.getBomb(Bomb.extraSteps);
+        let reshuffleCount = GlobalFuncHelper.getBomb(Bomb.reshuffle);
         
         CocosHelper.updateLabelText(this.lbTool1, bombCount);
         CocosHelper.updateLabelText(this.lbTool2, horCount);
@@ -168,6 +176,9 @@ export class GameViewCmpt extends BaseViewCmpt {
         if (this.lbTool6) {
             CocosHelper.updateLabelText(this.lbTool6, extraStepsCount);
         }
+        if (this.lbTool7) {
+            CocosHelper.updateLabelText(this.lbTool7, reshuffleCount);
+        }
         
         this.addBtn1.active = bombCount <= 0;
         this.addBtn2.active = horCount <= 0;
@@ -180,6 +191,9 @@ export class GameViewCmpt extends BaseViewCmpt {
         }
         if (this.addBtn6) {
             this.addBtn6.active = extraStepsCount <= 0;
+        }
+        if (this.addBtn7) {
+            this.addBtn7.active = reshuffleCount <= 0;
         }
     }
 
@@ -1258,6 +1272,9 @@ export class GameViewCmpt extends BaseViewCmpt {
             case "addBtn6":
                 type = Bomb.extraSteps;
                 break;
+            case "addBtn7":
+                type = Bomb.reshuffle;
+                break;
         }
         App.backHome(false, PageIndex.shop);
         // GlobalFuncHelper.setBomb(type,1);
@@ -1293,6 +1310,9 @@ export class GameViewCmpt extends BaseViewCmpt {
             case "toolBtn6":
                 type = Bomb.extraSteps;
                 break;
+            case "toolBtn7":
+                type = Bomb.reshuffle;
+                break;
         }
         
         let bombCount = GlobalFuncHelper.getBomb(type);
@@ -1318,10 +1338,100 @@ export class GameViewCmpt extends BaseViewCmpt {
             this.onClickExtraStepsButton();
 
         }
+        // 特殊处理"重新排列"道具
+        else if (type === Bomb.reshuffle) {
+            // 重置使用状态
+            this.isUsingBomb = false;
+            this.onClickReshuffleButton();
+
+        }
         else{
             this.throwTools(type, pos);
         }
         this.updateToolsInfo();
+    }
+    
+    /** 点击重新排列道具按钮 */
+    async onClickReshuffleButton() {
+        App.audio.play('button_click');
+        
+        // 显示提示
+        App.view.showMsgTips("Reshuffling...");
+        
+        // 执行重新排列
+        await this.reshuffleBlocks();
+        
+        // 更新UI
+        this.updateToolsInfo();
+    }
+    
+    /** 重新排列所有格子 */
+    async reshuffleBlocks() {
+        // 播放特效
+        let particle = instantiate(this.particlePre);
+        this.effNode.addChild(particle);
+        let p1 = this.effNode.getComponent(UITransform).convertToNodeSpaceAR(v3(0, 0, 0));
+        particle.setPosition(p1);
+        particle.children.forEach(item => {
+            item.active = item.name == "move";
+        });
+        
+        // 保存当前格子类型
+        let blockTypes: number[][] = [];
+        for (let i = 0; i < this.H; i++) {
+            blockTypes.push([]);
+            for (let j = 0; j < this.V; j++) {
+                if (this.blockArr[i][j]) {
+                    blockTypes[i][j] = this.blockArr[i][j].getComponent(gridCmpt).type;
+                } else {
+                    blockTypes[i][j] = -1; // 标记空格子
+                }
+            }
+        }
+        
+        // 将所有类型放入一个数组并打乱
+        let allTypes: number[] = [];
+        blockTypes.forEach(row => {
+            row.forEach(type => {
+                if (type !== -1) {
+                    allTypes.push(type);
+                }
+            });
+        });
+        
+        // Fisher-Yates 洗牌算法
+        for (let i = allTypes.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [allTypes[i], allTypes[j]] = [allTypes[j], allTypes[i]];
+        }
+        
+        // 重新分配类型
+        let typeIndex = 0;
+        for (let i = 0; i < this.H; i++) {
+            for (let j = 0; j < this.V; j++) {
+                if (blockTypes[i][j] !== -1) {
+                    // 为格子设置新的随机类型
+                    this.blockArr[i][j].getComponent(gridCmpt).setType(allTypes[typeIndex++]);
+                    
+                    // 添加缩放动画效果
+                    Tween.stopAllByTarget(this.blockArr[i][j]);
+                    tween(this.blockArr[i][j])
+                        .to(0.2, { scale: v3(0, 0, 0) })
+                        .to(0.2, { scale: v3(1.2, 1.2, 1.2) })
+                        .to(0.1, { scale: v3(1, 1, 1) })
+                        .start();
+                }
+            }
+        }
+        
+        // 等待动画完成
+        await ToolsHelper.delayTime(0.5);
+        
+        // 销毁特效
+        particle.destroy();
+        
+        // 检查是否有可消除的组合
+        await this.checkAgain(false);
     }
     
     /** 点击额外步数道具按钮 */

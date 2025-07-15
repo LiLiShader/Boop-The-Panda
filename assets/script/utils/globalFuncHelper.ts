@@ -109,6 +109,8 @@ class Helper {
                 return +StorageHelper.getData(StorageHelperKey.BombHint);
             case Bomb.extraSteps:
                 return +StorageHelper.getData(StorageHelperKey.BombExtraSteps);
+            case Bomb.reshuffle:
+                return +StorageHelper.getData(StorageHelperKey.BombReshuffle);
         }
     }
 
@@ -133,6 +135,9 @@ class Helper {
                 break;
             case Bomb.extraSteps:
                 StorageHelper.setData(StorageHelperKey.BombExtraSteps, ct + "");
+                break;
+            case Bomb.reshuffle:
+                StorageHelper.setData(StorageHelperKey.BombReshuffle, ct + "");
                 break;
         }
     }

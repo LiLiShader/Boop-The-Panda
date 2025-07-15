@@ -126,7 +126,8 @@ export enum Bomb {
     /** 消灭所有同一类型 */
     allSame = 11,
     hint = 99, // 新增：提示道具
-    extraSteps = 100 // 新增：额外增加10步数道具
+    extraSteps = 100, // 新增：额外增加10步数道具
+    reshuffle = 101 // 新增：重新排列所有格子道具
 }
 
 /** 页面跳转索引 */
