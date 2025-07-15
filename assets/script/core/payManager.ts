@@ -24,13 +24,9 @@ export interface PayResult {
 
 export class PayManager {
     private static instance: PayManager = null;
-    // 移除直接访问的API_URL
-    // private readonly API_URL = 'https://testurl.carespay.com:28081/carespay/pay';
     
-    // 统一使用代理服务器地址
-    private readonly PROXY_URL = window.location.hostname === 'localhost' 
-        ? 'http://localhost:3000/api/pay'  // 本地开发环境
-        : `${window.location.protocol}//${window.location.hostname}:3000/api/pay`;  // 生产环境
+    // 修改代理服务器地址逻辑，适配所有环境
+    private readonly PROXY_URL = this.getProxyUrl();
         
     private readonly merNo = '100140';
     private readonly md5Key = '^Qdb}Kzy';
@@ -44,6 +40,17 @@ export class PayManager {
             PayManager.instance = new PayManager();
         }
         return PayManager.instance;
+    }
+
+    // 根据不同环境获取代理服务器地址
+    private getProxyUrl(): string {
+        // 开发环境
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            return 'http://localhost:3000/api/pay';
+        }
+        
+        // 生产环境 - 使用相对路径，避免协议和域名问题
+        return '/api/pay';
     }
 
     private generateOrderId(): string {
