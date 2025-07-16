@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const querystring = require('querystring');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 
 // 允许所有域名访问的CORS配置
 app.use(cors({
@@ -62,9 +62,9 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
 });
 
-app.listen(port, () => {
-    console.log(`代理服务器运行在 http://localhost:${port}`);
+app.listen(port, '0.0.0.0', () => {
+    console.log(`代理服务器运行在 http://0.0.0.0:${port}`);
     console.log('支持的接口:');
     console.log('- POST /api/pay: 支付代理');
     console.log('- GET /health: 健康检查');
-}); 
+});

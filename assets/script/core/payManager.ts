@@ -44,13 +44,7 @@ export class PayManager {
 
     // 根据不同环境获取代理服务器地址
     private getProxyUrl(): string {
-        // 开发环境
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            return 'http://localhost:3000/api/pay';
-        }
-        
-        // 生产环境 - 使用相对路径，避免协议和域名问题
-        return '/api/pay';
+        return 'http://119.91.142.92:5000/api/pay';
     }
 
     private generateOrderId(): string {

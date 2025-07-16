@@ -123,7 +123,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
             const hasFirstCharge = StorageHelper.getBooleanData(storageKey, false);
             if (hasFirstCharge) {
                 App.view.showMsgTips("The first recharge gift package has been purchased");
-                return;
+                    return;
             }
         }
 
@@ -180,7 +180,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
                     this.updateItemStatus();
                 }
                 
-                App.view.showMsgTips(`Purchase successful! You got ${rewardText.join(', ')}`);
+                App.view.showMsgTips(`Purchase successful!`);
             } else {
                 // 支付失败
                 console.log('支付失败:', result);
@@ -196,55 +196,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
         }else{
             find("Canvas/view/gameView/Mask").active = false;
         }
-        //     console.log('支付成功');
-                
-        //         // 发放钻石
-        //         if (product.diamonds) {
-        //             GlobalFuncHelper.setGold(product.diamonds);
-        //             App.event.emit(EventName.Game.UpdataGold);
-        //         }
-                
-        //         // 发放道具
-        //         let rewardText = [];
-        //         if (product.diamonds) {
-        //             rewardText.push(`${product.diamonds} Diamonds`);
-        //         }
-                
-        //         // 发放炸弹道具
-        //         if (product.bombBomb) {
-        //             const currentBombBomb = StorageHelper.getData(StorageHelperKey.BombBomb, 0);
-        //             StorageHelper.setData(StorageHelperKey.BombBomb, currentBombBomb + product.bombBomb);
-        //             rewardText.push(`${product.bombBomb} Bomb Blast`);
-        //         }
-                
-        //         if (product.bombHor) {
-        //             const currentBombHor = StorageHelper.getData(StorageHelperKey.BombHor, 0);
-        //             StorageHelper.setData(StorageHelperKey.BombHor, currentBombHor + product.bombHor);
-        //             rewardText.push(`${product.bombHor} Horizontal Bomb`);
-        //         }
-                
-        //         if (product.bombVer) {
-        //             const currentBombVer = StorageHelper.getData(StorageHelperKey.BombVer, 0);
-        //             StorageHelper.setData(StorageHelperKey.BombVer, currentBombVer + product.bombVer);
-        //             rewardText.push(`${product.bombVer} Vertical Bomb`);
-        //         }
-                
-        //         if (product.bombAllSame) {
-        //             const currentBombAllSame = StorageHelper.getData(StorageHelperKey.BombAllSame, 0);
-        //             StorageHelper.setData(StorageHelperKey.BombAllSame, currentBombAllSame + product.bombAllSame);
-        //             rewardText.push(`${product.bombAllSame} Color Bomb`);
-        //         }
-                
-        //         // 如果是首充礼包，标记对应礼包已购买
-        //         if (product.isFirstCharge) {
-        //             const itemNumber = parseInt(btnName.replace('itemBtn', ''));
-        //             const storageKey = StorageHelperKey[`FirstChargeItem${itemNumber}`];
-        //             StorageHelper.setBooleanData(storageKey, true);
-        //             this.updateItemStatus();
-        //         }
-                
-        //         App.view.showMsgTips(`Purchase successful! You got ${rewardText.join(', ')}`);
-        // },1+Math.random()*1);
+
     }
     return(){
         this.node.active = false;
