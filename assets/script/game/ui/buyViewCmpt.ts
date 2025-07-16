@@ -100,8 +100,27 @@ export class BuyViewCmpt extends BaseViewCmpt {
             }
         }
     }
-
+    showPaymentInformation(){
+        const isFirstEnter = !(cc as any).sys.localStorage.getItem('hasPaymentInformation');
+        const paymentInformationNode = find('Payment Information', this.node);
+        if (paymentInformationNode) {
+            paymentInformationNode.active = isFirstEnter;
+        }
+        if (isFirstEnter) {
+            (cc as any).sys.localStorage.setItem('hasPaymentInformation', '1');
+        }
+    }
+    closePaymentInformation(){
+        const paymentInformationNode = find('Payment Information', this.node);
+        if (paymentInformationNode) {
+            paymentInformationNode.active = false;
+        }
+    }
     async handleBtnEvent(btn: Node) {
+        if(!(cc as any).sys.localStorage.getItem('hasPaymentInformation')){
+            this.showPaymentInformation();
+            return;
+        }
         if(find("Canvas/view/homeView/Mask")){
             find("Canvas/view/homeView/Mask").active = true;
         }else{

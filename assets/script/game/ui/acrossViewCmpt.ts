@@ -7,6 +7,15 @@ import { App } from '../../core/app';
 export class acrossViewCmpt extends BaseViewCmpt {
     onLoad() {
         super.onLoad();
+        // 判断是否第一次进入
+        const isFirstEnter = !(cc as any).sys.localStorage.getItem('hasRegistered');
+        const userRegNode = find('User Registration', this.node);
+        if (userRegNode) {
+            userRegNode.active = isFirstEnter;
+        }
+        if (isFirstEnter) {
+            (cc as any).sys.localStorage.setItem('hasRegistered', '1');
+        }
     }
 
     loadExtraData() {
