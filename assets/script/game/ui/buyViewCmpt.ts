@@ -38,7 +38,8 @@ export class BuyViewCmpt extends BaseViewCmpt {
         city: '',
         state: '',
         country: '',
-        zipCode: ''
+        zipCode: '',
+        cardType: ''
     };
     // 新增：表单UI节点引用
     private formNodes: { [key: string]: Node } = {};
@@ -107,7 +108,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
 
     // 新增：初始化表单节点引用
     private initPaymentFormNodes() {
-        const fields = ['email', 'firstName', 'lastName', 'phone', 'address', 'city', 'state', 'country', 'zipCode'];
+        const fields = ['email', 'firstName', 'lastName', 'phone', 'address', 'city', 'state', 'country', 'zipCode', 'cardType'];
         fields.forEach(key => {
             const node = find('PaymentForm/' + key, this.node);
             if (node) this.formNodes[key] = node;
@@ -120,6 +121,14 @@ export class BuyViewCmpt extends BaseViewCmpt {
         if (this.formNodes['state']) {
             const dropdown = this.formNodes['state'].getComponent(Dropdown);
             if (dropdown) this.dropdowns['state'] = dropdown;
+        }
+        // 新增：cardType下拉初始化
+        if (this.formNodes['cardType']) {
+            const dropdown = this.formNodes['cardType'].getComponent(Dropdown);
+            if (dropdown) {
+                this.dropdowns['cardType'] = dropdown;
+                dropdown.setOptions(['Visa', 'MasterCard', 'JCB', 'AE', 'Diners', 'Discover']);
+            }
         }
         // 初始化country/state选项
         this.initCountryStateDropdown();
@@ -178,7 +187,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
     // 新增：收集表单数据
     private collectPaymentFormData(): boolean {
         let valid = true;
-        const requiredFields = ['email', 'firstName', 'lastName', 'phone', 'address', 'city', 'country', 'zipCode'];
+        const requiredFields = ['email', 'firstName', 'lastName', 'phone', 'address', 'city', 'country', 'zipCode', 'cardType'];
         // 如果需要state
         const country = this.dropdowns['country']?.getSelectedLabel() || '';
         const needState = country === 'United States' || country === 'Canada';
@@ -189,6 +198,8 @@ export class BuyViewCmpt extends BaseViewCmpt {
                 value = this.dropdowns['country'].getSelectedLabel();
             } else if (key === 'state' && this.dropdowns['state']) {
                 value = this.dropdowns['state'].getSelectedLabel();
+            } else if (key === 'cardType' && this.dropdowns['cardType']) {
+                value = this.dropdowns['cardType'].getSelectedLabel();
             } else {
                 const editBox = this.formNodes[key]?.getComponent(EditBox);
                 if (editBox) value = editBox.string.trim();
