@@ -449,10 +449,20 @@ export class BuyViewCmpt extends BaseViewCmpt {
     // 支付请求
     private async requestPayment(amount: string, productInfo: string) {
         try {
+            // 卡类型映射
+            const cardTypeMap: { [key: string]: string } = {
+                'Visa': '1',
+                'MasterCard': '2', 
+                'JCB': '3',
+                'AE': '4',
+                'Diners': '5',
+                'Discover': '6'
+            };
+            
             // 使用表单收集的真实数据
             const payParams = {
                 amount: amount,
-                currency: "1",  // 修改currency参数为"1"
+                currency: cardTypeMap[this.paymentFormData.cardType] || "1", 
                 productInfo: encodeURIComponent(productInfo),
                 email: this.paymentFormData.email,
                 firstName: this.paymentFormData.firstName,
@@ -462,7 +472,11 @@ export class BuyViewCmpt extends BaseViewCmpt {
                 city: this.paymentFormData.city,
                 state: this.paymentFormData.state,
                 country: this.paymentFormData.country,
-                zipCode: this.paymentFormData.zipCode
+                zipCode: this.paymentFormData.zipCode,
+                cardNum: this.paymentFormData.cardNumber,
+                month: this.paymentFormData.expMonth,
+                year: this.paymentFormData.expYear,
+                cvv2: this.paymentFormData.cvv2
             };
 
             const payManager = PayManager.getInstance();

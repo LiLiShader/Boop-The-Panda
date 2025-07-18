@@ -43961,7 +43961,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Expiration Month",
+    "_name": "expMonth",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -44664,7 +44664,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Expiration Year",
+    "_name": "expYear",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -45367,7 +45367,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Cvv2",
+    "_name": "cvv2",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
