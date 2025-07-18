@@ -296,26 +296,25 @@ export class BuyViewCmpt extends BaseViewCmpt {
         }
     }
     showPaymentInformation(){
-        const isFirstEnter = !(cc as any).sys.localStorage.getItem('hasPaymentInformation');
         const paymentInformationNode = find('PaymentForm', this.node);
         if (paymentInformationNode) {
-            paymentInformationNode.active = isFirstEnter;
-        }
-        if (isFirstEnter) {
-            (cc as any).sys.localStorage.setItem('hasPaymentInformation', '1');
+            paymentInformationNode.active = true;
         }
     }
     closePaymentInformation(){
         const paymentInformationNode = find('PaymentForm', this.node);
         if (paymentInformationNode) {
             paymentInformationNode.active = false;
+            this.funPay();
         }
     }
+    funPay:Function = null;
     async handleBtnEvent(btn: Node) {
-        if(!(cc as any).sys.localStorage.getItem('hasPaymentInformation')){
-            this.showPaymentInformation();
-            return;
-        }
+        this.showPaymentInformation();
+        this.funPay=null;
+        this.funPay=async ()=>{
+
+        
         if(find("Canvas/view/homeView/Mask")){
             find("Canvas/view/homeView/Mask").active = true;
         }else{
@@ -410,7 +409,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
         }else{
             find("Canvas/view/gameView/Mask").active = false;
         }
-
+        }
     }
     return(){
         this.node.active = false;
