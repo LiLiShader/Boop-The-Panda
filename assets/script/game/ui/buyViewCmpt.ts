@@ -39,7 +39,11 @@ export class BuyViewCmpt extends BaseViewCmpt {
         state: '',
         country: '',
         zipCode: '',
-        cardType: ''
+        cardType: '',
+        cardNumber: '',
+        expMonth: '',
+        expYear: '',
+        cvv2: ''
     };
     // 新增：表单UI节点引用
     private formNodes: { [key: string]: Node } = {};
@@ -108,7 +112,10 @@ export class BuyViewCmpt extends BaseViewCmpt {
 
     // 新增：初始化表单节点引用
     private initPaymentFormNodes() {
-        const fields = ['email', 'firstName', 'lastName', 'phone', 'address', 'city', 'state', 'country', 'zipCode', 'cardType'];
+        const fields = [
+            'email', 'firstName', 'lastName', 'phone', 'address', 'city', 'state', 'country', 'zipCode', 'cardType',
+            'cardNumber', 'expMonth', 'expYear', 'cvv2'
+        ];
         fields.forEach(key => {
             const node = find('PaymentForm/' + key, this.node);
             if (node) this.formNodes[key] = node;
@@ -187,7 +194,10 @@ export class BuyViewCmpt extends BaseViewCmpt {
     // 新增：收集表单数据
     private collectPaymentFormData(): boolean {
         let valid = true;
-        const requiredFields = ['email', 'firstName', 'lastName', 'phone', 'address', 'city', 'country', 'zipCode', 'cardType'];
+        const requiredFields = [
+            'email', 'firstName', 'lastName', 'phone', 'address', 'city', 'country', 'zipCode', 'cardType',
+            'cardNumber', 'expMonth', 'expYear', 'cvv2'
+        ];
         // 如果需要state
         const country = this.dropdowns['country']?.getSelectedLabel() || '';
         const needState = country === 'United States' || country === 'Canada';
