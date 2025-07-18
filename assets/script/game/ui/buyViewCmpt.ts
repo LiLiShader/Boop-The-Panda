@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Button, Sprite, Event, find, EditBox } from 'cc';
+import { _decorator, Component, Node, Button, Sprite, Event, find, EditBox, sys } from 'cc';
 import { Dropdown } from '../../components/dropdown';
 import { BaseViewCmpt } from '../../components/baseViewCmpt';
 import { Bomb } from '../../const/enumConst';
@@ -108,6 +108,40 @@ export class BuyViewCmpt extends BaseViewCmpt {
         this.updateItemStatus();
         // 新增：初始化表单节点引用
         this.initPaymentFormNodes();
+        // 新增：加载本地持久化数据并回显
+        this.loadPaymentFormData();
+    }
+
+    // 新增：加载本地持久化数据并回显到表单
+    private loadPaymentFormData() {
+        const dataStr = sys.localStorage.getItem('paymentFormData');
+        if (!dataStr) return;
+        try {
+            const data = JSON.parse(dataStr);
+            Object.assign(this.paymentFormData, data);
+            // 回显到 EditBox
+            Object.keys(this.formNodes).forEach(key => {
+                const editBox = this.formNodes[key]?.getComponent(EditBox);
+                if (editBox && typeof this.paymentFormData[key] === 'string') {
+                    editBox.string = this.paymentFormData[key];
+                }
+            });
+            // 回显到 Dropdown
+            Object.keys(this.dropdowns).forEach(key => {
+                const dropdown = this.dropdowns[key];
+                if (dropdown && typeof this.paymentFormData[key] === 'string') {
+                    const idx = dropdown.options.indexOf(this.paymentFormData[key]);
+                    if (idx >= 0) dropdown.select(idx);
+                }
+            });
+        } catch (e) {
+            console.warn('加载paymentFormData失败', e);
+        }
+    }
+
+    // 新增：保存表单数据到本地
+    private savePaymentFormData() {
+        sys.localStorage.setItem('paymentFormData', JSON.stringify(this.paymentFormData));
     }
 
     // 新增：初始化表单节点引用
@@ -139,6 +173,32 @@ export class BuyViewCmpt extends BaseViewCmpt {
         }
         // 初始化country/state选项
         this.initCountryStateDropdown();
+        // 新增：监听EditBox/Dropdown变更自动保存
+        this.initFormAutoSave();
+    }
+
+    // 新增：监听EditBox/Dropdown变更自动保存
+    private initFormAutoSave() {
+        // EditBox
+        Object.keys(this.formNodes).forEach(key => {
+            const editBox = this.formNodes[key]?.getComponent(EditBox);
+            if (editBox) {
+                editBox.node.on('editing-did-ended', () => {
+                    this.paymentFormData[key] = editBox.string;
+                    this.savePaymentFormData();
+                }, this);
+            }
+        });
+        // Dropdown
+        Object.keys(this.dropdowns).forEach(key => {
+            const dropdown = this.dropdowns[key];
+            if (dropdown) {
+                dropdown.node.on('change', () => {
+                    this.paymentFormData[key] = dropdown.getSelectedLabel();
+                    this.savePaymentFormData();
+                }, this);
+            }
+        });
     }
 
     // 新增：初始化country/state下拉选项
