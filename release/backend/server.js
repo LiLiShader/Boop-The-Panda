@@ -26,7 +26,7 @@ app.post('/api/pay', async (req, res) => {
         // 直接转发URL编码的数据
         const response = await axios({
             method: 'post',
-            url: 'https://testurl.carespay.com:28081/carespay/pay',
+            url: 'https://thunderousfreeze.com/api/pay',
             data: req.body,
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
