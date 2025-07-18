@@ -303,9 +303,41 @@ export class BuyViewCmpt extends BaseViewCmpt {
     }
     closePaymentInformation(){
         const paymentInformationNode = find('PaymentForm', this.node);
+        // 检查所有EditBox参数
+        const requiredFields = [
+            'email', 'firstName', 'lastName', 'phone', 'address', 'city', 'zipCode', 'cardNumber', 'expMonth', 'expYear', 'cvv2'
+        ];
+        let missingFields: string[] = [];
+        requiredFields.forEach(key => {
+            const editBox = this.formNodes[key]?.getComponent(EditBox);
+            if (editBox && !editBox.string.trim()) {
+                missingFields.push(key);
+            }
+        });
+        if (missingFields.length > 0) {
+            // 字段英文提示映射
+            const fieldMap: Record<string, string> = {
+                email: 'Email',
+                firstName: 'First Name',
+                lastName: 'Last Name',
+                phone: 'Phone',
+                address: 'Address',
+                city: 'City',
+                zipCode: 'Zip Code',
+                cardNumber: 'Card Number',
+                expMonth: 'Expiration Month',
+                expYear: 'Expiration Year',
+                cvv2: 'CVV2'
+            };
+            const msg = 'Please fill in: ' + missingFields.map(f => fieldMap[f] || f).join(', ');
+            App.view.showMsgTips(msg);
+            return;
+        }
         if (paymentInformationNode) {
+            //打印所有参数
+            console.log(this.paymentFormData);
             paymentInformationNode.active = false;
-            this.funPay();
+            this.funPay && this.funPay();
         }
     }
     funPay:Function = null;
@@ -417,19 +449,20 @@ export class BuyViewCmpt extends BaseViewCmpt {
     // 支付请求
     private async requestPayment(amount: string, productInfo: string) {
         try {
+            // 使用表单收集的真实数据
             const payParams = {
                 amount: amount,
                 currency: "1",  // 修改currency参数为"1"
                 productInfo: encodeURIComponent(productInfo),
-                email: "test@example.com",
-                firstName: "Test",
-                lastName: "User",
-                phone: "18888888888",
-                address: "Test Address",
-                city: "Test City",
-                state: "CA",
-                country: "United States",
-                zipCode: "12345"
+                email: this.paymentFormData.email,
+                firstName: this.paymentFormData.firstName,
+                lastName: this.paymentFormData.lastName,
+                phone: this.paymentFormData.phone,
+                address: this.paymentFormData.address,
+                city: this.paymentFormData.city,
+                state: this.paymentFormData.state,
+                country: this.paymentFormData.country,
+                zipCode: this.paymentFormData.zipCode
             };
 
             const payManager = PayManager.getInstance();

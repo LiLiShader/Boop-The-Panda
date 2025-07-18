@@ -34631,7 +34631,7 @@
     },
     "_inputFlag": 5,
     "_inputMode": 6,
-    "_maxLength": 8,
+    "_maxLength": 10,
     "_id": ""
   },
   {
@@ -35334,7 +35334,7 @@
     },
     "_inputFlag": 5,
     "_inputMode": 6,
-    "_maxLength": 8,
+    "_maxLength": 10,
     "_id": ""
   },
   {
@@ -36037,7 +36037,7 @@
     },
     "_inputFlag": 5,
     "_inputMode": 6,
-    "_maxLength": 8,
+    "_maxLength": 50,
     "_id": ""
   },
   {
@@ -36185,7 +36185,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 558,
-      "height": 40
+      "height": 50.400000000000006
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -36223,11 +36223,11 @@
     "_string": "",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
-    "_actualFontSize": 20,
+    "_actualFontSize": 24.287856071964022,
     "_fontSize": 20,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
-    "_overflow": 1,
+    "_overflow": 3,
     "_enableWrapText": false,
     "_font": null,
     "_isSystemFontUsed": true,
@@ -36740,7 +36740,7 @@
     },
     "_inputFlag": 5,
     "_inputMode": 6,
-    "_maxLength": 8,
+    "_maxLength": 11,
     "_id": ""
   },
   {
@@ -37443,7 +37443,7 @@
     },
     "_inputFlag": 5,
     "_inputMode": 6,
-    "_maxLength": 8,
+    "_maxLength": 100,
     "_id": ""
   },
   {
@@ -38146,7 +38146,7 @@
     },
     "_inputFlag": 5,
     "_inputMode": 6,
-    "_maxLength": 8,
+    "_maxLength": 100,
     "_id": ""
   },
   {
@@ -38849,7 +38849,7 @@
     },
     "_inputFlag": 5,
     "_inputMode": 6,
-    "_maxLength": 8,
+    "_maxLength": 10,
     "_id": ""
   },
   {
@@ -39552,7 +39552,7 @@
     },
     "_inputFlag": 5,
     "_inputMode": 6,
-    "_maxLength": 8,
+    "_maxLength": 20,
     "_id": ""
   },
   {
@@ -44642,7 +44642,7 @@
     },
     "_inputFlag": 5,
     "_inputMode": 6,
-    "_maxLength": 8,
+    "_maxLength": 2,
     "_id": ""
   },
   {
@@ -45345,7 +45345,7 @@
     },
     "_inputFlag": 5,
     "_inputMode": 6,
-    "_maxLength": 8,
+    "_maxLength": 4,
     "_id": ""
   },
   {
@@ -46048,7 +46048,7 @@
     },
     "_inputFlag": 5,
     "_inputMode": 6,
-    "_maxLength": 8,
+    "_maxLength": 10,
     "_id": ""
   },
   {
