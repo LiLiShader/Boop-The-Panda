@@ -153,14 +153,14 @@ export class BuyViewCmpt extends BaseViewCmpt {
             countryValue = this.dropdowns['country'].getSelectedLabel();
         }
         this.paymentFormData.country = countryValue;
-        // 切换state下拉选项
+        // 切换state下拉选项，重置选中项
         if (this.dropdowns['state']) {
             if (countryValue === 'United States') {
-                this.dropdowns['state'].setOptions(Dropdown.US_STATES);
+                this.dropdowns['state'].setOptions(Dropdown.US_STATES, true);
             } else if (countryValue === 'Canada') {
-                this.dropdowns['state'].setOptions(Dropdown.CANADA_STATES);
+                this.dropdowns['state'].setOptions(Dropdown.CANADA_STATES, true);
             } else {
-                this.dropdowns['state'].setOptions([]);
+                this.dropdowns['state'].setOptions([], true);
             }
         }
         this.updateStateFieldVisibility();

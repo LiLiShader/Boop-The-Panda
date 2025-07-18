@@ -30,6 +30,7 @@ export class Dropdown extends Component {
 
     private _selectedIndex: number = 0;
     private _onChange: EventHandler[] = [];
+    private static openedDropdown: Dropdown = null; // 当前打开的Dropdown
 
     // 静态常用选项
     public static US_STATES = [
@@ -55,12 +56,11 @@ export class Dropdown extends Component {
         }
     }
 
-    setOptions(options: string[]) {
+    // 优化：可选重置选中项
+    setOptions(options: string[], resetSelect: boolean = true) {
         this.options = options;
         if (!this.content || !this.optionItemPrefab) return;
-        // 清空旧选项
         this.content.removeAllChildren();
-        // 动态生成新选项
         for (let i = 0; i < options.length; i++) {
             const item = instantiate(this.optionItemPrefab);
             const label = item.getComponent(Label) || item.getComponentInChildren(Label);
@@ -68,6 +68,16 @@ export class Dropdown extends Component {
             item.active = true;
             item.on(Button.EventType.CLICK, () => this.select(i), this);
             this.content.addChild(item);
+        }
+        if (resetSelect) {
+            this.select(0);
+        } else {
+            // 若当前选中项超出新options范围，重置为0
+            if (this._selectedIndex >= options.length) {
+                this.select(0);
+            } else {
+                this.select(this._selectedIndex);
+            }
         }
     }
 
@@ -87,9 +97,25 @@ export class Dropdown extends Component {
         return this._selectedIndex;
     }
 
+    // 优化：全局只允许一个Dropdown面板显示
     togglePanel() {
         if (this.optionsPanel) {
+            if (!this.optionsPanel.active) {
+                // 关闭其他Dropdown
+                if (Dropdown.openedDropdown && Dropdown.openedDropdown !== this) {
+                    Dropdown.openedDropdown.hidePanel();
+                }
+                Dropdown.openedDropdown = this;
+            } else {
+                Dropdown.openedDropdown = null;
+            }
             this.optionsPanel.active = !this.optionsPanel.active;
+        }
+    }
+
+    hidePanel() {
+        if (this.optionsPanel) {
+            this.optionsPanel.active = false;
         }
     }
 
