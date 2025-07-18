@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, Button, Sprite, Event, find, EditBox } from 'cc';
+import { Dropdown } from '../../components/dropdown';
 import { BaseViewCmpt } from '../../components/baseViewCmpt';
 import { Bomb } from '../../const/enumConst';
 import { EventName } from '../../const/eventName';
@@ -41,6 +42,8 @@ export class BuyViewCmpt extends BaseViewCmpt {
     };
     // 新增：表单UI节点引用
     private formNodes: { [key: string]: Node } = {};
+    // 新增：Dropdown组件引用
+    private dropdowns: { [key: string]: Dropdown } = {};
 
     // 商品配置
     private readonly products: { [key: string]: ProductConfig } = {
@@ -109,31 +112,64 @@ export class BuyViewCmpt extends BaseViewCmpt {
             const node = find('PaymentForm/' + key, this.node);
             if (node) this.formNodes[key] = node;
         });
-        // 监听国家选择变化
+        // 记录Dropdown组件
         if (this.formNodes['country']) {
+            const dropdown = this.formNodes['country'].getComponent(Dropdown);
+            if (dropdown) this.dropdowns['country'] = dropdown;
+        }
+        if (this.formNodes['state']) {
+            const dropdown = this.formNodes['state'].getComponent(Dropdown);
+            if (dropdown) this.dropdowns['state'] = dropdown;
+        }
+        // 初始化country/state选项
+        this.initCountryStateDropdown();
+    }
+
+    // 新增：初始化country/state下拉选项
+    private initCountryStateDropdown() {
+        // 常用国家英文
+        const countries = [
+            'United States', 'Canada', 'United Kingdom', 'Australia', 'Germany', 'France', 'Japan', 'China', 'India', 'Brazil',
+            'Mexico', 'Italy', 'Spain', 'Russia', 'South Korea', 'Singapore', 'Malaysia', 'Thailand', 'Vietnam', 'Philippines',
+            'Indonesia', 'Turkey', 'Netherlands', 'Sweden', 'Switzerland', 'Denmark', 'Finland', 'Norway', 'Poland', 'Greece',
+            'Hungary', 'Czech Republic', 'New Zealand', 'South Africa', 'Argentina', 'Chile', 'Colombia', 'Peru', 'Egypt',
+            'UAE', 'Saudi Arabia', 'Israel', 'Ukraine', 'Portugal', 'Belgium', 'Austria', 'Ireland', 'Romania', 'Slovakia',
+            'Croatia', 'Slovenia', 'Bulgaria', 'Estonia', 'Latvia', 'Lithuania', 'Luxembourg', 'Iceland', 'Malta', 'Cyprus',
+            'Monaco', 'Liechtenstein', 'Andorra', 'San Marino', 'Vatican City', 'Other'
+        ];
+        if (this.dropdowns['country']) {
+            this.dropdowns['country'].setOptions(countries);
+            // 监听country变化
             this.formNodes['country'].on('change', this.onCountryChange, this);
         }
-        // 初始化state显示
+        // 默认隐藏state
         this.updateStateFieldVisibility();
     }
 
-    // 新增：国家选择变化时，显示/隐藏state字段
+    // 新增：国家选择变化时，显示/隐藏state字段并切换state选项
     private onCountryChange() {
-        if (!this.formNodes['country']) return;
         let countryValue = '';
-        // 只处理EditBox
-        const editBox = this.formNodes['country'].getComponent(EditBox);
-        if (editBox) {
-            countryValue = editBox.string;
+        if (this.dropdowns['country']) {
+            countryValue = this.dropdowns['country'].getSelectedLabel();
         }
         this.paymentFormData.country = countryValue;
+        // 切换state下拉选项
+        if (this.dropdowns['state']) {
+            if (countryValue === 'United States') {
+                this.dropdowns['state'].setOptions(Dropdown.US_STATES);
+            } else if (countryValue === 'Canada') {
+                this.dropdowns['state'].setOptions(Dropdown.CANADA_STATES);
+            } else {
+                this.dropdowns['state'].setOptions([]);
+            }
+        }
         this.updateStateFieldVisibility();
     }
 
     // 新增：根据国家显示/隐藏state字段
     private updateStateFieldVisibility() {
-        const country = this.paymentFormData.country.trim().toLowerCase();
-        const showState = country === 'united states' || country === 'canada' || country === '美国' || country === '加拿大';
+        const country = this.paymentFormData.country.trim();
+        const showState = country === 'United States' || country === 'Canada';
         if (this.formNodes['state']) {
             this.formNodes['state'].active = showState;
         }
@@ -144,18 +180,18 @@ export class BuyViewCmpt extends BaseViewCmpt {
         let valid = true;
         const requiredFields = ['email', 'firstName', 'lastName', 'phone', 'address', 'city', 'country', 'zipCode'];
         // 如果需要state
-        const editBox = this.formNodes['country']?.getComponent(EditBox);
-        let country = '';
-        if (editBox) {
-            country = editBox.string.trim().toLowerCase();
-        }
-        const needState = country === 'united states' || country === 'canada' || country === '美国' || country === '加拿大';
+        const country = this.dropdowns['country']?.getSelectedLabel() || '';
+        const needState = country === 'United States' || country === 'Canada';
         if (needState) requiredFields.push('state');
         requiredFields.forEach(key => {
             let value = '';
-            const editBox = this.formNodes[key]?.getComponent(EditBox);
-            if (editBox) {
-                value = editBox.string.trim();
+            if (key === 'country' && this.dropdowns['country']) {
+                value = this.dropdowns['country'].getSelectedLabel();
+            } else if (key === 'state' && this.dropdowns['state']) {
+                value = this.dropdowns['state'].getSelectedLabel();
+            } else {
+                const editBox = this.formNodes[key]?.getComponent(EditBox);
+                if (editBox) value = editBox.string.trim();
             }
             this.paymentFormData[key] = value;
             if (!value) valid = false;
@@ -180,7 +216,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
     }
     showPaymentInformation(){
         const isFirstEnter = !(cc as any).sys.localStorage.getItem('hasPaymentInformation');
-        const paymentInformationNode = find('Payment Information', this.node);
+        const paymentInformationNode = find('PaymentForm', this.node);
         if (paymentInformationNode) {
             paymentInformationNode.active = isFirstEnter;
         }
@@ -189,7 +225,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
         }
     }
     closePaymentInformation(){
-        const paymentInformationNode = find('Payment Information', this.node);
+        const paymentInformationNode = find('PaymentForm', this.node);
         if (paymentInformationNode) {
             paymentInformationNode.active = false;
         }
