@@ -169,6 +169,7 @@ export class PayManager {
                         if (xhr.readyState === 4) {
                             if (xhr.status === 200) {
                                 const response = JSON.parse(xhr.responseText);
+                                console.log('支付响应:', response);
                                 resolve({
                                     code: response.code || 'ERROR',
                                     message: response.message || '支付失败',
