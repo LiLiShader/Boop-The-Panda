@@ -71,12 +71,16 @@ export class LoginViewCmpt extends BaseViewCmpt {
             if (this.nameInput) this.nameInput.node.active = false;
             if (this.loginBtn) this.loginBtn.node.active = true;
             if (this.registerBtn) this.registerBtn.node.active = false;
+            if (this.switchToRegisterBtn) this.switchToRegisterBtn.node.active = true;
+            if (this.switchToLoginBtn) this.switchToLoginBtn.node.active = false;
         } else {
             console.log('注册模式');
             // 注册模式：显示昵称输入框
             if (this.nameInput) this.nameInput.node.active = true;
             if (this.loginBtn) this.loginBtn.node.active = false;
             if (this.registerBtn) this.registerBtn.node.active = true;
+            if (this.switchToRegisterBtn) this.switchToRegisterBtn.node.active = false;
+            if (this.switchToLoginBtn) this.switchToLoginBtn.node.active = true;
         }
         
         this.updateStatusLabel('');
@@ -88,25 +92,25 @@ export class LoginViewCmpt extends BaseViewCmpt {
         const password = this.passwordInput?.string?.trim();
         
         if (!pid || !password) {
-            this.updateStatusLabel('请填写完整信息');
+            this.updateStatusLabel('Please provide complete information');
             return;
         }
         
-        this.updateStatusLabel('登录中...');
+        this.updateStatusLabel('Logging in...');
         
         try {
             const success = await App.user.loginUser(pid, password);
             if (success) {
-                this.updateStatusLabel('登录成功！');
+                this.updateStatusLabel('Login successful!');
                 // 延迟关闭登录界面
                 setTimeout(() => {
                     this.closeLoginView();
                 }, 1000);
             } else {
-                this.updateStatusLabel('登录失败，请检查账号密码');
+                this.updateStatusLabel('Login failed, please check account password');
             }
         } catch (error) {
-            this.updateStatusLabel('登录失败，请重试');
+            this.updateStatusLabel('Login failed, please try again');
             console.error('登录失败:', error);
         }
     }
@@ -118,37 +122,37 @@ export class LoginViewCmpt extends BaseViewCmpt {
         const password = this.passwordInput?.string?.trim();
         
         if (!pid || !name || !password) {
-            this.updateStatusLabel('请填写完整信息');
+            this.updateStatusLabel('Please provide complete information');
             return;
         }
         
         if (password.length < 6) {
-            this.updateStatusLabel('密码至少6位');
+            this.updateStatusLabel('Password must be at least 6 characters long');
             return;
         }
         
-        this.updateStatusLabel('注册中...');
+        this.updateStatusLabel('Registering...');
         
         try {
             const success = await App.user.registerUser(pid, name, password);
             if (success) {
-                this.updateStatusLabel('注册成功！正在登录...');
+                this.updateStatusLabel('Register successful! Logging in...');
                 // 注册成功后自动登录
                 const loginSuccess = await App.user.loginUser(pid, password);
                 if (loginSuccess) {
-                    this.updateStatusLabel('注册并登录成功！');
+                    this.updateStatusLabel('Register and login successful!');
                     setTimeout(() => {
                         this.closeLoginView();
                     }, 1000);
                 } else {
-                    this.updateStatusLabel('注册成功，但登录失败');
+                    this.updateStatusLabel('Register successful, but login failed');
                 }
             } else {
-                this.updateStatusLabel('注册失败，玩家ID可能已存在');
+                this.updateStatusLabel('Register failed, player ID may already exist');
             }
         } catch (error) {
-            this.updateStatusLabel('注册失败，请重试');
-            console.error('注册失败:', error);
+            this.updateStatusLabel('Register failed, please try again');
+            console.error('Register failed:', error);
         }
     }
 
@@ -159,7 +163,7 @@ export class LoginViewCmpt extends BaseViewCmpt {
     }
 
     private closeLoginView() {
-        console.log('关闭登录界面');
+        console.log('Close login view');
         // 关闭登录界面，显示主界面
         this.node.active = false;
         
@@ -172,14 +176,14 @@ export class LoginViewCmpt extends BaseViewCmpt {
 
     // 显示登录界面
     showLoginView() {
-        console.log('显示登录界面');
+        console.log('Show login view');
         this.node.active = true;
         this.setMode('login');
         this.clearInputs();
     }
 
     private clearInputs() {
-        console.log('清除输入');
+        console.log('Clear inputs');
         if (this.pidInput) this.pidInput.string = '';
         if (this.nameInput) this.nameInput.string = '';
         if (this.passwordInput) this.passwordInput.string = '';

@@ -20,7 +20,8 @@ export class acrossViewCmpt extends BaseViewCmpt {
     }
 
     private checkLoginStatus() {
-        if (!App.user.isLoggedIn) {
+        // if (!App.user.isLoggedIn) 
+        {
             this.showLoginView();
         }
     }
