@@ -101,4 +101,23 @@ export class settingViewCmpt extends BaseViewCmpt {
         this.onClick_closeBtn();
         App.backHome();
     }
+
+    async showPayInfo() {
+        // 获取当前用户ID
+        const user = App.user.currentUser;
+        if (!user || !user.pid) {
+            console.warn('未登录，无法查询支付记录');
+            return;
+        }
+        // 请求后端API
+        const resp = await fetch(`http://119.91.142.92:3001/api/payments/user/${user.pid}`);
+        const result = await resp.json();
+        if (result.success) {
+            console.log('支付记录：', result.data);
+            // 你可以在这里把数据渲染到UI上
+            // this.updatePayInfoUI(result.data);
+        } else {
+            console.error('查询支付记录失败', result.message);
+        }
+    }
 }
