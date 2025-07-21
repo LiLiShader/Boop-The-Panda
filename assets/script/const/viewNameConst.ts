@@ -37,6 +37,8 @@ export namespace ViewName {
         /** 新手引导 */
         eGuideView = 'ui/guideView',
         eAcrossView = 'ui/acrossView',
+        /** 登录界面 */
+        eLoginView = 'ui/loginView',
     }
 
     /** 可以多个同时存在 */

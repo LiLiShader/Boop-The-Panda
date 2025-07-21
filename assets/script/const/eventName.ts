@@ -56,13 +56,16 @@ export namespace EventName {
         Scrolling = "Scrollinggg",
         GotoShop = "GotoShopgg",
 
-
-
-
-
-
-
-
+        /** 登录成功 */
+        LoginSuccess = "LoginSuccess",
+        /** 登录失败 */
+        LoginFailed = "LoginFailed",
+        /** 注册成功 */
+        RegisterSuccess = "RegisterSuccess",
+        /** 注册失败 */
+        RegisterFailed = "RegisterFailed",
+        /** 登出 */
+        Logout = "Logout",
 
         /** 全局倒计时 */
         TIMER_DOWN = "TIMER_DOWN",

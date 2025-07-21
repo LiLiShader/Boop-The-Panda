@@ -8,7 +8,17 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // 中间件
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.sendStatus(204);
+});
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -298,8 +308,19 @@ app.get('/api/health', (req, res) => {
     });
 });
 
+// 全局CORS头，确保所有响应都带上
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    next();
+});
+
 // 错误处理中间件
 app.use((err, req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     console.error('服务器错误:', err);
     res.status(500).json({
         success: false,
@@ -309,6 +330,9 @@ app.use((err, req, res, next) => {
 
 // 404处理
 app.use((req, res) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.status(404).json({
         success: false,
         message: '接口不存在'

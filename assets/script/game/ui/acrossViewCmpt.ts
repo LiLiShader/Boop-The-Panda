@@ -3,24 +3,40 @@ const { ccclass, property } = _decorator;
 import { BaseViewCmpt } from '../../components/baseViewCmpt';
 import { ViewName } from '../../const/viewNameConst';
 import { App } from '../../core/app';
+import { EventName } from '../../const/eventName';
+
 @ccclass('acrossViewCmpt')
 export class acrossViewCmpt extends BaseViewCmpt {
     onLoad() {
         super.onLoad();
-        // 判断是否第一次进入
-        const isFirstEnter = !(cc as any).sys.localStorage.getItem('hasRegistered');
-        const userRegNode = find('User Registration', this.node);
-        if (userRegNode) {
-            userRegNode.active = isFirstEnter;
+        // 登录检查
+        this.checkLoginStatus();
+        // 监听登录成功事件
+        App.event.on(EventName.Game.LoginSuccess, this.onLoginSuccess, this);
+    }
+
+    onDestroy() {
+        App.event.off(EventName.Game.LoginSuccess, this);
+    }
+
+    private checkLoginStatus() {
+        if (!App.user.isLoggedIn) {
+            this.showLoginView();
         }
-        if (isFirstEnter) {
-            (cc as any).sys.localStorage.setItem('hasRegistered', '1');
-        }
+    }
+
+    private showLoginView() {
+        App.view.openView(ViewName.Single.eLoginView);
+    }
+
+    private onLoginSuccess() {
+        // 登录成功后的逻辑，比如刷新界面
+        // this.initData(); // 如有需要
+        console.log('登录成功，acrossViewCmpt 可刷新数据');
     }
 
     loadExtraData() {
         App.view.closeView(ViewName.Single.eLoadingView);
-
     }
     onClick_startBtn() {
         App.view.openView(ViewName.Single.eHomeView);

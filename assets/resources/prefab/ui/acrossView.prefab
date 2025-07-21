@@ -6434,7 +6434,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 117.89787290596666,
+      "width": 117.916015625,
       "height": 79.6
     },
     "_anchorPoint": {
@@ -6473,7 +6473,7 @@
     "_string": "Start",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 60.71964017991005,
+    "_actualFontSize": 50,
     "_fontSize": 50,
     "_fontFamily": "Arial",
     "_lineHeight": 60,
@@ -7926,7 +7926,7 @@
     "_string": "Your Name",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
-    "_actualFontSize": 24.287856071964022,
+    "_actualFontSize": 23.538230884557723,
     "_fontSize": 20,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -8120,7 +8120,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 244.52193543233986,
+      "width": 244.51712265500595,
       "height": 50.400000000000006
     },
     "_anchorPoint": {
@@ -8159,7 +8159,7 @@
     "_string": "User name：",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 48.575712143928044,
+    "_actualFontSize": 47.07646176911545,
     "_fontSize": 40,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -8591,7 +8591,7 @@
     "_string": "00000",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
-    "_actualFontSize": 24.287856071964022,
+    "_actualFontSize": 23.538230884557723,
     "_fontSize": 20,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -8785,7 +8785,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 228.93782469196083,
+      "width": 228.93331827540305,
       "height": 50.400000000000006
     },
     "_anchorPoint": {
@@ -8824,7 +8824,7 @@
     "_string": "Password：",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 48.575712143928044,
+    "_actualFontSize": 47.07646176911545,
     "_fontSize": 40,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -9007,8 +9007,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 204.04138449209705,
-      "height": 79.6
+      "width": 204.05423315740694,
+      "height": 79.59999999999998
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -9046,7 +9046,7 @@
     "_string": "Register",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 60.71964017991005,
+    "_actualFontSize": 58.84557721139431,
     "_fontSize": 50,
     "_fontFamily": "Arial",
     "_lineHeight": 60,
@@ -9306,7 +9306,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 720,
-      "height": 656.9169999999997
+      "height": 656.9169999999999
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -9428,7 +9428,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 720,
-      "height": 1333.9999999999998
+      "height": 1334
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",

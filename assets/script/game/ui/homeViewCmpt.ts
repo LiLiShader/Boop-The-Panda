@@ -41,6 +41,7 @@ export class homeViewCmpt extends BaseViewCmpt {
         "3": "shareBtn",
         "4": "settingBtn"
     }
+    
     onLoad() {
         super.onLoad();
         this.btnNode = this.viewList.get("bottom/btn");
@@ -64,6 +65,7 @@ export class homeViewCmpt extends BaseViewCmpt {
         super.onDestroy();
         App.event.off(EventName.Game.UpdataGold, this);
     }
+    
     async loadExtraData(isStart: boolean, pageIndex: number = 2) {
         App.view.closeView(ViewName.Single.eLoadingView);
         App.view.closeView(ViewName.Single.eGameView);
