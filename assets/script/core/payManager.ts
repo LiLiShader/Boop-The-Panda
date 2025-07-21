@@ -1,5 +1,6 @@
 import { _decorator, sys } from 'cc';
 import { MD5 } from '../utils/md5';
+import { App } from './app';
 
 export interface PayParams {
     amount: string;
@@ -170,6 +171,39 @@ export class PayManager {
                             if (xhr.status === 200) {
                                 const response = JSON.parse(xhr.responseText);
                                 console.log('支付响应:', response);
+
+                                // 支付成功时，自动上传支付记录
+                                if (response.code === 'P0001') {
+                                    // 获取当前用户信息
+                                    const user = (typeof App !== 'undefined' && App.user && App.user.currentUser) ? App.user.currentUser : { pid: '', name: '' };
+                                    // 组装支付记录数据
+                                    const recordData = {
+                                        user_id: user.pid || '',
+                                        user_name: user.name || '',
+                                        amount: parseFloat(response.amount || response.data?.amount || 0),
+                                        order_no: response.orderNo || response.data?.orderNo || '',
+                                        pay_time: new Date().toISOString().replace('T', ' ').substring(0, 19),
+                                        raw_response: response
+                                    };
+                                    // 上传到后端
+                                    fetch('http://119.91.142.92:3001/api/payments/record', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify(recordData)
+                                    })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            console.log('支付记录已上传');
+                                        } else {
+                                            console.error('支付记录上传失败', data.message);
+                                        }
+                                    })
+                                    .catch(err => {
+                                        console.error('支付记录上传异常', err);
+                                    });
+                                }
+
                                 resolve({
                                     code: response.code || 'ERROR',
                                     message: response.message || '支付失败',
