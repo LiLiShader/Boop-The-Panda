@@ -9,6 +9,9 @@ export class AdminViewCmpt extends Component {
     @property(Button)
     queryBtn: Button = null;
 
+    @property(Button)
+    queryAllBtn: Button = null;
+
     @property(Label)
     userInfoLabel: Label = null;
 
@@ -23,6 +26,7 @@ export class AdminViewCmpt extends Component {
 
     onLoad() {
         this.queryBtn.node.on(Button.EventType.CLICK, this.onQuery, this);
+        this.queryAllBtn.node.on(Button.EventType.CLICK, this.onQueryAll, this);
     }
 
     async onQuery() {
@@ -48,6 +52,19 @@ export class AdminViewCmpt extends Component {
         this.updatePayList(pay.success ? pay.data : []);
     }
 
+    async onQueryAll() {
+        // 查询所有支付订单
+        const resp = await fetch('http://119.91.142.92:3001/api/payments/all');
+        const result = await resp.json();
+        if (!result.success) {
+            this.userInfoLabel.string = 'Query failed';
+            this.clearPayList();
+            return;
+        }
+        this.userInfoLabel.string = 'All payment records:';
+        this.updatePayList(result.data);
+    }
+
     updatePayList(payList: any[]) {
         this.content.removeAllChildren();
         if (!payList || payList.length === 0) {
@@ -59,7 +76,7 @@ export class AdminViewCmpt extends Component {
         payList.forEach(item => {
             const node = instantiate(this.payOrderItemPrefab);
             node.getChildByName('info').getComponent(Label).string =
-                `Order No: ${item.order_no}  Amount: ${item.amount}  Pay Time: ${item.pay_time}`;
+                `UserID: ${item.user_id}  Name: ${item.user_name}\nOrder No: ${item.order_no}  Amount: ${item.amount}  Pay Time: ${item.pay_time}`;
             this.content.addChild(node);
         });
     }

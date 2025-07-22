@@ -24,7 +24,7 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
     }
 
     public pid: number = 0;
-    
+
     // 账号系统API地址
     private readonly ACCOUNT_API = 'http://119.91.142.92:3001/api';
     
