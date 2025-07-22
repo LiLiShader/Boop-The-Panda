@@ -1,4 +1,4 @@
-import { _decorator, Component, Node } from 'cc';
+import { _decorator, Component, instantiate, Node } from 'cc';
 import { BaseViewCmpt } from '../../components/baseViewCmpt';
 import { PageIndex } from '../../const/enumConst';
 import { EventName } from '../../const/eventName';
@@ -8,6 +8,10 @@ import { CocosHelper } from '../../utils/cocosHelper';
 import { GlobalFuncHelper } from '../../utils/globalFuncHelper';
 import { StorageHelper, StorageHelperKey } from '../../utils/storageHelper';
 import { WxManager, WxMgr } from '../../wx/wxManager';
+import { Label } from 'cc';
+import { Color } from 'cc';
+import { UITransform } from 'cc';
+import { Prefab } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('settingViewCmpt')
@@ -115,9 +119,30 @@ export class settingViewCmpt extends BaseViewCmpt {
         if (result.success) {
             console.log('支付记录：', result.data);
             // 你可以在这里把数据渲染到UI上
-            // this.updatePayInfoUI(result.data);
+            this.updatePayInfoUI(result.data);
         } else {
             console.error('查询支付记录失败', result.message);
         }
+    }
+    @property(Node)
+    payContent: Node = null;
+    @property(Prefab)
+    PayInfoItem: Prefab = null;
+    updatePayInfoUI(payList: any[]) {
+        // 清空原有内容
+        this.payContent.removeAllChildren();
+        if (!payList || payList.length === 0) {
+            // 没有支付记录
+            const node = instantiate(this.PayInfoItem);
+            node.getChildByName("info").getComponent(Label).string = `No payment records.`;
+            this.payContent.addChild(node);
+            return;
+        }
+        // 遍历支付记录，生成条目
+        payList.forEach(item => {
+            const node = instantiate(this.PayInfoItem);
+            node.getChildByName("info").getComponent(Label).string = `Order No: ${item.order_no}  Amount: ${item.amount}  Pay Time: ${item.pay_time}`;
+            this.payContent.addChild(node);
+        });
     }
 }
