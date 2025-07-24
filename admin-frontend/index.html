@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏运维管理系统</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>游戏运维管理系统</h1>
+        </header>
+        
+        <div class="main-content">
+            <div class="search-panel">
+                <div class="search-section">
+                    <h2>查询条件</h2>
+                    
+                    <!-- 用户ID查询 -->
+                    <div class="search-group">
+                        <label for="user-id">用户ID:</label>
+                        <input type="text" id="user-id" placeholder="请输入用户ID">
+                        <button id="query-user-btn" class="primary-btn">根据ID查询</button>
+                    </div>
+                    
+                    <!-- 订单号查询 -->
+                    <div class="search-group">
+                        <label for="order-no">订单号:</label>
+                        <input type="text" id="order-no" placeholder="请输入订单号">
+                        <button id="query-order-btn" class="primary-btn">按订单号查询</button>
+                    </div>
+                    
+                    <!-- 时间段查询 -->
+                    <div class="search-group">
+                        <label>时间段:</label>
+                        <div class="date-range">
+                            <input type="datetime-local" id="start-time">
+                            <span>至</span>
+                            <input type="datetime-local" id="end-time">
+                        </div>
+                        <button id="query-time-btn" class="primary-btn">按时间段查询</button>
+                    </div>
+                    
+                    <!-- 查询所有订单 -->
+                    <div class="search-group">
+                        <button id="query-all-btn" class="secondary-btn">查询全部订单</button>
+                        <button id="export-excel-btn" class="export-btn" disabled>导出为Excel</button>
+                    </div>
+                </div>
+                
+                <!-- 用户信息区域 -->
+                <div class="user-info-container" id="user-info-section">
+                    <h3>用户信息</h3>
+                    <div id="user-info" class="info-display">
+                        <p class="empty-message">请输入用户ID进行查询</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 订单列表区域 -->
+            <div class="orders-section">
+                <h2>支付订单</h2>
+                <div class="orders-header">
+                    <div class="results-info">
+                        <span id="results-count">0</span> 条记录
+                    </div>
+                </div>
+                <div class="scrollable-container">
+                    <div id="orders-list" class="orders-list">
+                        <p class="empty-message">暂无订单信息</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 订单详情模态框 -->
+        <div id="order-detail-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>订单详情</h3>
+                    <span class="close-modal">&times;</span>
+                </div>
+                <div class="modal-body" id="order-detail-content">
+                    <!-- 订单详情将在这里显示 -->
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2024 游戏运维管理系统</p>
+        </footer>
+    </div>
+    
+    <!-- 引入xlsx库用于Excel导出 -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 

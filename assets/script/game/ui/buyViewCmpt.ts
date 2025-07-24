@@ -52,18 +52,27 @@ export class BuyViewCmpt extends BaseViewCmpt {
 
     // 商品配置
     private readonly products: { [key: string]: ProductConfig } = {
+        //普通钻石礼包：8美金-12钻石
         'itemBtn1': { amount: '8', diamonds: 12 },
+        //普通钻石礼包：20美金-40钻石
         'itemBtn2': { amount: '20', diamonds: 40 },
+        //普通钻石礼包：40美金-70钻石
         'itemBtn3': { amount: '40', diamonds: 70 },
+        //普通钻石礼包：80美金-140钻石
         'itemBtn4': { amount: '80', diamonds: 140 },
+        //普通钻石礼包：100美金-180钻石
         'itemBtn5': { amount: '100', diamonds: 180 },
-        // 首充双倍礼包
+        //首充双倍礼包：8美金-24钻石
         'itemBtn6': { amount: '8', diamonds: 24, isFirstCharge: true },
+        //首充双倍礼包：20美金-80钻石
         'itemBtn7': { amount: '20', diamonds: 80, isFirstCharge: true },
+        //首充双倍礼包：40美金-140钻石
         'itemBtn8': { amount: '40', diamonds: 140, isFirstCharge: true },
+        //首充双倍礼包：80美金-280钻石
         'itemBtn9': { amount: '80', diamonds: 280, isFirstCharge: true },
+        //首充双倍礼包：100美金-360钻石
         'itemBtn10': { amount: '100', diamonds: 360, isFirstCharge: true },
-        // 道具礼包
+        // 道具礼包：200美金-50钻石，3个炸弹，3个横向炸弹，5个竖向炸弹，2个同类型炸弹
         'itemBtn11': { 
             amount: '200', 
             diamonds: 50,
@@ -72,6 +81,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
             bombVer: 5,
             bombAllSame: 2
         },
+        // 道具礼包：500美金-200钻石，5个炸弹，10个横向炸弹，20个竖向炸弹，10个同类型炸弹
         'itemBtn12': { 
             amount: '500', 
             diamonds: 200,
@@ -80,6 +90,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
             bombVer: 10,
             bombAllSame: 3
         },
+        // 道具礼包：1000美金-1000钻石，10个炸弹，20个横向炸弹，40个竖向炸弹，20个同类型炸弹
         'itemBtn13': { 
             amount: '1000',
             bombBomb: 10,
@@ -87,6 +98,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
             bombVer: 20,
             bombAllSame: 5
         },
+        // 道具礼包：1500美金-1500钻石，20个炸弹，40个横向炸弹，80个竖向炸弹，40个同类型炸弹
         'itemBtn14': { 
             amount: '1500', 
             diamonds: 1000,

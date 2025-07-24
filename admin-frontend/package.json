@@ -1,0 +1,13 @@
+{
+  "name": "game-admin-system",
+  "version": "1.0.0",
+  "description": "游戏运维管理系统",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {}
+} 
