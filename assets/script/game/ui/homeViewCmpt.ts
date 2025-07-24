@@ -11,7 +11,6 @@ import { ResLoadHelper } from '../../utils/resLoadHelper';
 import { StorageHelper, StorageHelperKey } from '../../utils/storageHelper';
 import { ToolsHelper } from '../../utils/toolsHelper';
 import { Advertise } from '../../wx/advertise';
-import { randomAd } from "../../utils/randomAdManager";
 const { ccclass, property } = _decorator;
 
 enum Pages {
@@ -71,9 +70,6 @@ export class homeViewCmpt extends BaseViewCmpt {
         App.view.closeView(ViewName.Single.eLoadingView);
         App.view.closeView(ViewName.Single.eGameView);
         App.view.closeView(ViewName.Single.eAcrossView);
-
-        // 主页面加载时尝试触发广告
-        randomAd.tryShowRandomAd();
 
         this.isStart = isStart;
         this.pageView.getPages().forEach((item, idx) => {
@@ -213,26 +209,6 @@ export class homeViewCmpt extends BaseViewCmpt {
     onClick_sharePageBtn() {
         App.audio.play('button_click');
         App.event.emit(EventName.Game.Share, LevelConfig.getCurLevel());
-    }
-
-    /** 点击开始游戏 */
-    onClick_startBtn() {
-        App.audio.play('button_click');
-        
-        // 点击开始游戏时尝试触发广告
-        randomAd.tryShowRandomAd();
-        
-        App.view.openView(ViewName.Single.eGameView, LevelConfig.getCurLevel());
-    }
-
-    /** 点击关卡 */
-    onClick_levelItem(evt: Event, idx: string) {
-        App.audio.play('button_click');
-        
-        // 点击关卡时尝试触发广告
-        randomAd.tryShowRandomAd();
-        
-        App.view.openView(ViewName.Single.eGameView, +idx);
     }
 
 }
