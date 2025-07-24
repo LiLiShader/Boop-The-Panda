@@ -14,6 +14,7 @@ import { Advertise } from '../../wx/advertise';
 import { gridManagerCmpt } from './gridManagerCmpt';
 import { gridCmpt } from './item/gridCmpt';
 import { rocketCmpt } from './item/rocketCmpt';
+import { randomAd } from "../../utils/randomAdManager";
 const { ccclass, property } = _decorator;
 
 @ccclass('gameViewCmpt')
@@ -118,7 +119,10 @@ export class GameViewCmpt extends BaseViewCmpt {
     /** 初始化 */
     async loadExtraData(lv: number) {
         App.view.closeView(ViewName.Single.eHomeView);
-        Advertise.showInterstitialAds();
+        
+        // 游戏开始时尝试触发广告
+        randomAd.tryShowRandomAd();
+        
         this.level = lv;
         this.data = await LevelConfig.getLevelData(lv);
         App.gameLogic.blockCount = this.data.blockCount;
@@ -130,6 +134,9 @@ export class GameViewCmpt extends BaseViewCmpt {
             this.rocketPre = await ResLoadHelper.loadPieces(ViewName.Pieces.rocket);
         }
         await this.initLayout();
+        
+        // 初始化随机广告管理器
+        randomAd.init();
     }
     /*********************************************  UI information *********************************************/
     /*********************************************  UI information *********************************************/
@@ -250,14 +257,22 @@ export class GameViewCmpt extends BaseViewCmpt {
                 this.handleLastSteps();
             }
             else {
+                // 游戏胜利时尝试触发广告
+                randomAd.tryShowRandomAd();
+                
                 let view = App.view.getViewByName(ViewName.Single.eResultView);
                 if (!view) {
+                    App.audio.play('win');
                     App.view.openView(ViewName.Single.eResultView, this.level, true, this.coutArr, this.starCount);
                 }
             }
         }
         else if (this.stepCount <= 0 && count != this.coutArr.length) {
             //lose
+            // 游戏失败时尝试触发广告
+            randomAd.tryShowRandomAd();
+            
+            App.audio.play('lose');
             App.view.openView(ViewName.Single.eResultView, this.level, false);
         }
     }
@@ -574,6 +589,9 @@ export class GameViewCmpt extends BaseViewCmpt {
                 });
                 if (bool || (isbomb1 || isbomb2)) {
                     this.checkAgain()
+                    
+                    // 尝试触发随机广告
+                    randomAd.tryShowRandomAd();
                 }
                 else {
                     console.log(this.curTwo);
@@ -1314,7 +1332,9 @@ export class GameViewCmpt extends BaseViewCmpt {
             this.isStartChange = false;
             this.isStartTouch = false;
         }, 1);
+        
         let type: number = -1;
+        
         switch (btnNode.name) {
             case "toolBtn1":
                 type = Bomb.bomb;
@@ -1345,31 +1365,21 @@ export class GameViewCmpt extends BaseViewCmpt {
             App.view.showMsgTips("Insufficient number of props");
             return;
         }
+        
+        // 使用道具时尝试触发随机广告
+        randomAd.tryShowRandomAd();
+        
         GlobalFuncHelper.setBomb(type, -1);
         let pos = btnNode.worldPosition;
         
         // 特殊处理"提示"道具
         if (type === Bomb.hint) {
-            // 重置使用状态，以免影响findHintMove中的其他逻辑
-            this.isUsingBomb = false;
             this.onClickHintButton();
-
-        }
-        // 特殊处理"额外加10步数"道具
-        else if (type === Bomb.extraSteps) {
-            // 重置使用状态
-            this.isUsingBomb = false;
+        } else if (type === Bomb.extraSteps) {
             this.onClickExtraStepsButton();
-
-        }
-        // 特殊处理"重新排列"道具
-        else if (type === Bomb.reshuffle) {
-            // 重置使用状态
-            this.isUsingBomb = false;
+        } else if (type === Bomb.reshuffle) {
             this.onClickReshuffleButton();
-
-        }
-        else{
+        } else {
             this.throwTools(type, pos);
         }
         this.updateToolsInfo();

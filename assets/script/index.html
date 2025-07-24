@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Boop The Panda</title>
+  <meta name="description" content="A fun puzzle game where you match colorful pandas to complete levels">
+  
+  <!-- Google Ad Placement API -->
+  <script async
+    data-ad-frequency-hint="30s"
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+    crossorigin="anonymous">
+  </script>
+  <script>
+    window.adsbygoogle = window.adsbygoogle || [];
+    var adBreak = adConfig = function(o) {adsbygoogle.push(o);}
+  </script>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #000;
+    }
+    
+    #game-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    
+    #loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    
+    #loading-progress {
+      width: 70%;
+      height: 20px;
+      background-color: #333;
+      border-radius: 10px;
+      margin-top: 20px;
+      overflow: hidden;
+    }
+    
+    #progress-bar {
+      width: 0%;
+      height: 100%;
+      background-color: #f5a623;
+      transition: width 0.3s ease;
+    }
+    
+    #loading-text {
+      color: #fff;
+      font-family: Arial, sans-serif;
+      font-size: 18px;
+      margin-top: 10px;
+    }
+    
+    #game-logo {
+      width: 200px;
+      height: 200px;
+      background-image: url('path/to/logo.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="game-container"></div>
+  
+  <div id="loading-overlay">
+    <div id="game-logo"></div>
+    <div id="loading-progress">
+      <div id="progress-bar"></div>
+    </div>
+    <div id="loading-text">Loading... 0%</div>
+  </div>
+
+  <script>
+    // 模拟加载进度
+    let progress = 0;
+    const progressBar = document.getElementById('progress-bar');
+    const loadingText = document.getElementById('loading-text');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    
+    const interval = setInterval(() => {
+      progress += Math.random() * 10;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+        
+        // 加载完成后隐藏加载界面
+        setTimeout(() => {
+          loadingOverlay.style.opacity = '0';
+          loadingOverlay.style.transition = 'opacity 0.5s ease';
+          setTimeout(() => {
+            loadingOverlay.style.display = 'none';
+          }, 500);
+        }, 500);
+      }
+      
+      progressBar.style.width = `${progress}%`;
+      loadingText.innerText = `Loading... ${Math.floor(progress)}%`;
+    }, 200);
+    
+    // 初始化广告配置
+    document.addEventListener('DOMContentLoaded', function() {
+      // 预加载广告
+      adConfig({
+        preloadAdBreaks: 'on',
+        onReady: () => {
+          console.log('广告预加载完成');
+        }
+      });
+    });
+  </script>
+  
+  <!-- 游戏主脚本 -->
+  <script src="path/to/game.js"></script>
+</body>
+</html> 

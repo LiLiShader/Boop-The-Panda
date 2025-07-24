@@ -12,9 +12,10 @@ import { StorageHelper } from "../utils/storageHelper";
 import TimeManager from "./timeManager";
 import { GameLogic } from "../game/logic/gameLogic";
 import { WxMgr } from "../wx/wxManager";
-import { Prefab, sys } from "cc";
+import { Prefab, sys, Node } from "cc";
 import { ResLoadHelper } from "../utils/resLoadHelper";
 import { ViewName } from "../const/viewNameConst";
+import { randomAd } from "../utils/randomAdManager";
 /**
  * App管理
  */
@@ -43,6 +44,9 @@ class GameApp extends SingletonClass<GameApp> {
         this.gameLogic.init();
         StorageHelper.initData();
         WxMgr.init();
+        
+        // 初始化随机广告管理器
+        randomAd.init();
     }
 
     addEvent() {

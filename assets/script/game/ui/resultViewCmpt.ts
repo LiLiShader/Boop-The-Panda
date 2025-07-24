@@ -7,6 +7,7 @@ import { App } from '../../core/app';
 import { GlobalFuncHelper } from '../../utils/globalFuncHelper';
 import { Advertise } from '../../wx/advertise';
 import { gridCmpt } from './item/gridCmpt';
+import { randomAd } from "../../utils/randomAdManager";
 const { ccclass, property } = _decorator;
 
 @ccclass('resultViewCmpt')
@@ -15,22 +16,29 @@ export class ResultViewCmpt extends BaseViewCmpt {
     private level: number = 0;
     private starCount: number = 0;
     private star: Node = null;
+    private coutArr: any[] = [];
 
     onLoad() {
         super.onLoad();
         this.star = this.viewList.get('animNode/win/star');
     }
 
-    async loadExtraData(lv: number, isWin: boolean, coutArr: any[], starCount: number) {
+    /** 初始化 */
+    async loadExtraData(lv: number, isWin: boolean, coutArr = [], starCount: number = 0) {
+        // 游戏结束时尝试触发广告
+        randomAd.tryShowRandomAd();
+        
+        this.level = lv;
+        this.isWin = isWin;
+        this.coutArr = coutArr;
+        this.starCount = starCount;
+        
         if (isWin) {
             App.audio.play('win');
         }
         else {
             App.audio.play('lose');
         }
-        this.level = lv;
-        this.starCount = starCount;
-        this.isWin = isWin;
         this.viewList.get('animNode/win').active = isWin;
         this.viewList.get('animNode/lose').active = !isWin;
         if (isWin) {
@@ -119,5 +127,27 @@ export class ResultViewCmpt extends BaseViewCmpt {
         }
         App.backHome(true);
         super.onClick_closeBtn()
+    }
+
+    /** 点击下一关 */
+    onClickNextLevel() {
+        App.audio.play('button_click');
+        
+        // 点击下一关时尝试触发广告
+        randomAd.tryShowRandomAd();
+        
+        App.view.closeView(ViewName.Single.eResultView);
+        App.view.openView(ViewName.Single.eGameView, this.level + 1);
+    }
+
+    /** 点击重玩 */
+    onClickReplay() {
+        App.audio.play('button_click');
+        
+        // 点击重玩时尝试触发广告
+        randomAd.tryShowRandomAd();
+        
+        App.view.closeView(ViewName.Single.eResultView);
+        App.view.openView(ViewName.Single.eGameView, this.level);
     }
 }
