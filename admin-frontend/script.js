@@ -234,20 +234,71 @@ function onExportExcel() {
 
 // 获取订单商品名称
 function getOrderItemName(order) {
-    // 这里根据订单的raw_response解析商品信息
-    // 示例实现，实际需要根据您的数据结构调整
     try {
+        // 先检查是否有product_details字段
+        if (order.product_details) {
+            let details = typeof order.product_details === 'string' 
+                ? JSON.parse(order.product_details) 
+                : order.product_details;
+            
+            // 构建商品描述
+            let description = [];
+            
+            // 添加钻石信息
+            if (details.diamonds) {
+                description.push(`${details.diamonds} Diamonds`);
+            }
+            
+            // 添加道具信息
+            if (details.bombBomb) {
+                description.push(`${details.bombBomb} Bomb Blast`);
+            }
+            if (details.bombHor) {
+                description.push(`${details.bombHor} Horizontal Bomb`);
+            }
+            if (details.bombVer) {
+                description.push(`${details.bombVer} Vertical Bomb`);
+            }
+            if (details.bombAllSame) {
+                description.push(`${details.bombAllSame} Color Bomb`);
+            }
+            
+            // 添加首充标记
+            if (details.isFirstCharge) {
+                description.push("(First Charge)");
+            }
+            
+            // 如果有商品ID，添加商品ID
+            if (order.product_id) {
+                description.push(`ID: ${order.product_id}`);
+            }
+            
+            // 组合描述
+            if (description.length > 0) {
+                return description.join(", ");
+            }
+        }
+        
+        // 如果没有product_details，尝试从product_info获取
+        if (order.product_info) {
+            return order.product_info;
+        }
+        
+        // 如果上面都没有，尝试从raw_response解析
         if (order.raw_response) {
             const response = typeof order.raw_response === 'string' 
                 ? JSON.parse(order.raw_response) 
                 : order.raw_response;
-                
-            // 假设raw_response中有item_name字段
-            return response.item_name || '未知商品';
+            
+            if (response.productInfo) {
+                return decodeURIComponent(response.productInfo);
+            }
         }
     } catch (e) {
         console.error('解析订单商品信息出错:', e);
     }
+    
+    // 默认返回未知商品
     return '未知商品';
 }
 
@@ -336,11 +387,15 @@ function updateOrdersList(orders) {
     ordersList.innerHTML = '';
     
     currentOrders.forEach(order => {
+        // 获取商品名称
+        const productName = getOrderItemName(order);
+        
         const orderElement = document.createElement('div');
         orderElement.className = 'order-item';
         orderElement.innerHTML = `
             <p><strong>UserID:</strong> ${order.user_id || '未知'} <strong>Name:</strong> ${order.user_name || '未知'}</p>
             <p><strong>Order No:</strong> ${order.order_no || '未知'} <strong>Amount:</strong> ${order.amount || 0} <strong>Pay Time:</strong> ${order.pay_time || '未知'}</p>
+            <p><strong>Product:</strong> ${productName}</p>
         `;
         
         // 添加点击事件，显示订单详情
@@ -370,6 +425,52 @@ function showOrderDetail(order) {
     // 获取商品信息
     const itemName = getOrderItemName(order);
     
+    // 解析商品详情
+    let productDetailsHtml = '';
+    try {
+        if (order.product_details) {
+            const details = typeof order.product_details === 'string' 
+                ? JSON.parse(order.product_details) 
+                : order.product_details;
+            
+            productDetailsHtml = '<div class="product-details">';
+            
+            // 添加商品ID
+            if (order.product_id) {
+                productDetailsHtml += `<p><strong>商品ID:</strong> ${order.product_id}</p>`;
+            }
+            
+            // 添加钻石信息
+            if (details.diamonds) {
+                productDetailsHtml += `<p><strong>钻石:</strong> ${details.diamonds}</p>`;
+            }
+            
+            // 添加道具信息
+            if (details.bombBomb) {
+                productDetailsHtml += `<p><strong>炸弹:</strong> ${details.bombBomb}</p>`;
+            }
+            if (details.bombHor) {
+                productDetailsHtml += `<p><strong>横向炸弹:</strong> ${details.bombHor}</p>`;
+            }
+            if (details.bombVer) {
+                productDetailsHtml += `<p><strong>竖向炸弹:</strong> ${details.bombVer}</p>`;
+            }
+            if (details.bombAllSame) {
+                productDetailsHtml += `<p><strong>同类型炸弹:</strong> ${details.bombAllSame}</p>`;
+            }
+            
+            // 添加首充标记
+            if (details.isFirstCharge) {
+                productDetailsHtml += `<p><strong>首充礼包:</strong> 是</p>`;
+            }
+            
+            productDetailsHtml += '</div>';
+        }
+    } catch (e) {
+        console.error('解析商品详情出错:', e);
+        productDetailsHtml = '<p>商品详情解析失败</p>';
+    }
+    
     // 填充订单详情内容
     orderDetailContent.innerHTML = `
         <div class="detail-item">
@@ -386,6 +487,12 @@ function showOrderDetail(order) {
                 <p><strong>金额:</strong> ${order.amount || 0}</p>
                 <p><strong>支付时间:</strong> ${order.pay_time || '未知'}</p>
                 <p><strong>商品:</strong> ${itemName}</p>
+            </div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label">商品详情</div>
+            <div class="detail-value">
+                ${productDetailsHtml || '<p>无商品详情</p>'}
             </div>
         </div>
         <div class="detail-item">

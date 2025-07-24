@@ -176,6 +176,88 @@ export class PayManager {
                                 if (response.code === 'P0001') {
                                     // 获取当前用户信息
                                     const user = (typeof App !== 'undefined' && App.user && App.user.currentUser) ? App.user.currentUser : { pid: '', name: '' };
+                                    
+                                    // 解析商品信息
+                                    const productInfo = decodeURIComponent(data.productInfo || '');
+                                    
+                                    // 尝试获取商品ID和商品详情
+                                    let productId = '';
+                                    let productDetails = {};
+                                    
+                                    // 从productInfo中提取商品ID (例如：钻石礼包-12钻石)
+                                    if (productInfo.includes('钻石礼包-')) {
+                                        const diamondsMatch = productInfo.match(/钻石礼包-(\d+)钻石/);
+                                        if (diamondsMatch && diamondsMatch[1]) {
+                                            // 根据钻石数量和金额查找对应的商品ID
+                                            const diamonds = parseInt(diamondsMatch[1]);
+                                            const amount = data.amount;
+                                            
+                                            // 遍历商品配置查找匹配的商品
+                                            for (let i = 1; i <= 14; i++) {
+                                                if (
+                                                    (i <= 5 && amount === '8' && diamonds === 12) ||
+                                                    (i <= 5 && amount === '20' && diamonds === 40) ||
+                                                    (i <= 5 && amount === '40' && diamonds === 70) ||
+                                                    (i <= 5 && amount === '80' && diamonds === 140) ||
+                                                    (i <= 5 && amount === '100' && diamonds === 180) ||
+                                                    (i === 6 && amount === '8' && diamonds === 24) ||
+                                                    (i === 7 && amount === '20' && diamonds === 80) ||
+                                                    (i === 8 && amount === '40' && diamonds === 140) ||
+                                                    (i === 9 && amount === '80' && diamonds === 280) ||
+                                                    (i === 10 && amount === '100' && diamonds === 360) ||
+                                                    (i === 11 && amount === '200' && diamonds === 50) ||
+                                                    (i === 12 && amount === '500' && diamonds === 200) ||
+                                                    (i === 13 && amount === '1000') ||
+                                                    (i === 14 && amount === '1500' && diamonds === 1000)
+                                                ) {
+                                                    productId = `itemBtn${i}`;
+                                                    break;
+                                                }
+                                            }
+                                            
+                                            // 根据商品ID设置商品详情
+                                            if (productId) {
+                                                if (productId === 'itemBtn11') {
+                                                    productDetails = {
+                                                        diamonds: 50,
+                                                        bombBomb: 3,
+                                                        bombHor: 3,
+                                                        bombVer: 5,
+                                                        bombAllSame: 2
+                                                    };
+                                                } else if (productId === 'itemBtn12') {
+                                                    productDetails = {
+                                                        diamonds: 200,
+                                                        bombBomb: 5,
+                                                        bombHor: 5,
+                                                        bombVer: 10,
+                                                        bombAllSame: 3
+                                                    };
+                                                } else if (productId === 'itemBtn13') {
+                                                    productDetails = {
+                                                        bombBomb: 10,
+                                                        bombHor: 10,
+                                                        bombVer: 20,
+                                                        bombAllSame: 5
+                                                    };
+                                                } else if (productId === 'itemBtn14') {
+                                                    productDetails = {
+                                                        diamonds: 1000,
+                                                        bombBomb: 20,
+                                                        bombHor: 20,
+                                                        bombAllSame: 10
+                                                    };
+                                                } else if (parseInt(productId.replace('itemBtn', '')) <= 10) {
+                                                    // 普通钻石礼包或首充礼包
+                                                    productDetails = {
+                                                        diamonds: diamonds,
+                                                        isFirstCharge: parseInt(productId.replace('itemBtn', '')) >= 6
+                                                    };
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
                                     // 组装支付记录数据
                                     const recordData = {
                                         user_id: user.pid || '',
@@ -183,7 +265,10 @@ export class PayManager {
                                         amount: parseFloat(response.amount || response.data?.amount || 0),
                                         order_no: response.orderNo || response.data?.orderNo || '',
                                         pay_time: new Date().toISOString().replace('T', ' ').substring(0, 19),
-                                        raw_response: response
+                                        raw_response: response,
+                                        product_id: productId,
+                                        product_info: productInfo,
+                                        product_details: productDetails
                                     };
                                     // 上传到后端
                                     fetch('http://119.91.142.92:3001/api/payments/record', {

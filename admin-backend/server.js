@@ -50,7 +50,7 @@ pool.getConnection((err, connection) => {
 });
 
 // 创建用户表的SQL
-const createTableSQL = `
+const createUsersTableSQL = `
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     pid VARCHAR(50) UNIQUE NOT NULL,
@@ -64,12 +64,40 @@ CREATE TABLE IF NOT EXISTS users (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 `;
 
+// 创建支付记录表的SQL
+const createPaymentRecordsTableSQL = `
+CREATE TABLE IF NOT EXISTS payment_records (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id VARCHAR(50) NOT NULL,
+    user_name VARCHAR(100) NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    order_no VARCHAR(100) NOT NULL UNIQUE,
+    pay_time DATETIME NOT NULL,
+    raw_response JSON DEFAULT NULL,
+    product_id VARCHAR(20) DEFAULT NULL COMMENT '商品ID',
+    product_info TEXT DEFAULT NULL COMMENT '商品信息',
+    product_details JSON DEFAULT NULL COMMENT '商品详细信息',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_user_id (user_id),
+    INDEX idx_order_no (order_no)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+`;
+
 // 初始化数据库表
-pool.query(createTableSQL, (err) => {
+pool.query(createUsersTableSQL, (err) => {
     if (err) {
         console.error('创建用户表失败:', err);
     } else {
         console.log('用户表初始化成功');
+    }
+});
+
+pool.query(createPaymentRecordsTableSQL, (err) => {
+    if (err) {
+        console.error('创建支付记录表失败:', err);
+    } else {
+        console.log('支付记录表初始化成功');
     }
 });
 
@@ -296,6 +324,82 @@ app.get('/api/users', (req, res) => {
                 }
             });
         });
+    });
+});
+
+// 记录支付信息接口
+app.post('/api/payments/record', (req, res) => {
+    const { user_id, user_name, amount, order_no, pay_time, raw_response, product_id, product_info, product_details } = req.body;
+
+    if (!user_id || !user_name || !amount || !order_no || !pay_time) {
+        return res.json({
+            success: false,
+            message: '缺少必要参数'
+        });
+    }
+
+    // 使用包含商品信息的SQL语句
+    const sql = `INSERT INTO payment_records 
+                (user_id, user_name, amount, order_no, pay_time, raw_response, product_id, product_info, product_details) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    
+    pool.query(
+        sql, 
+        [
+            user_id, 
+            user_name, 
+            amount, 
+            order_no, 
+            pay_time, 
+            JSON.stringify(raw_response || {}),
+            product_id || null,
+            product_info || null,
+            product_details ? JSON.stringify(product_details) : null
+        ], 
+        (err, result) => {
+            if (err) {
+                console.error('记录支付信息失败:', err);
+                return res.json({
+                    success: false,
+                    message: '记录失败'
+                });
+            }
+            res.json({
+                success: true,
+                message: '记录成功'
+            });
+        }
+    );
+});
+
+// 查询某用户所有支付记录
+app.get('/api/payments/user/:user_id', (req, res) => {
+    const { user_id } = req.params;
+    const sql = `SELECT id, user_id, user_name, amount, order_no, pay_time, created_at, 
+                product_id, product_info, product_details, raw_response 
+                FROM payment_records WHERE user_id = ? ORDER BY id DESC`;
+    
+    pool.query(sql, [user_id], (err, results) => {
+        if (err) {
+            console.error('查询支付记录失败:', err);
+            return res.json({ success: false, message: '查询失败' });
+        }
+        res.json({ success: true, data: results });
+    });
+});
+
+// 查询所有支付订单
+app.get('/api/payments/all', (req, res) => {
+    const sql = `SELECT id, user_id, user_name, amount, order_no, pay_time, created_at, 
+                product_id, product_info, product_details, raw_response 
+                FROM payment_records ORDER BY id DESC`;
+    
+    pool.query(sql, [], (err, results) => {
+        if (err) {
+            console.error('查询所有支付订单失败:', err);
+            return res.json({ success: false, message: '查询失败' });
+        }
+        res.json({ success: true, data: results });
     });
 });
 
