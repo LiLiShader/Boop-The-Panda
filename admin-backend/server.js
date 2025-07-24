@@ -373,7 +373,6 @@ app.post('/api/payments/record', (req, res) => {
 });
 
 // 查询某用户所有支付记录
-// 查询某用户所有支付记录
 app.get('/api/payments/user/:user_id', (req, res) => {
     const { user_id } = req.params;
     // 修改SQL查询，包含商品信息字段
