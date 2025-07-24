@@ -373,10 +373,12 @@ app.post('/api/payments/record', (req, res) => {
 });
 
 // 查询某用户所有支付记录
+// 查询某用户所有支付记录
 app.get('/api/payments/user/:user_id', (req, res) => {
     const { user_id } = req.params;
+    // 修改SQL查询，包含商品信息字段
     const sql = `SELECT id, user_id, user_name, amount, order_no, pay_time, created_at, 
-                product_id, product_info, product_details, raw_response 
+                product_id, product_info, product_details 
                 FROM payment_records WHERE user_id = ? ORDER BY id DESC`;
     
     pool.query(sql, [user_id], (err, results) => {
@@ -390,8 +392,9 @@ app.get('/api/payments/user/:user_id', (req, res) => {
 
 // 查询所有支付订单
 app.get('/api/payments/all', (req, res) => {
+    // 修改SQL查询，包含商品信息字段
     const sql = `SELECT id, user_id, user_name, amount, order_no, pay_time, created_at, 
-                product_id, product_info, product_details, raw_response 
+                product_id, product_info, product_details 
                 FROM payment_records ORDER BY id DESC`;
     
     pool.query(sql, [], (err, results) => {
