@@ -137,7 +137,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 720,
-      "height": 1334
+      "height": 1333.9999999999998
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -380,8 +380,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 130.66019973268934,
-      "height": 50.39999999999999
+      "width": 130.6631144017349,
+      "height": 50.4
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -419,7 +419,7 @@
     "_string": "Game login",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 28.245877061469265,
+    "_actualFontSize": 29.145427286356824,
     "_fontSize": 24,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -478,7 +478,7 @@
     "_target": null,
     "_left": 0,
     "_right": 0,
-    "_top": 0,
+    "_top": -3.552713678800501e-15,
     "_bottom": 224.8,
     "_horizontalCenter": 0,
     "_verticalCenter": 0,
@@ -896,7 +896,7 @@
     "_string": "Enter text here...",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
-    "_actualFontSize": 23.538230884557723,
+    "_actualFontSize": 24.287856071964022,
     "_fontSize": 20,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -1016,7 +1016,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 115.9914210422783,
+      "width": 119.9776015481831,
       "height": 37.8
     },
     "_anchorPoint": {
@@ -1052,10 +1052,10 @@
       "b": 51,
       "a": 255
     },
-    "_string": "account：",
+    "_string": "Account：",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 28.245877061469265,
+    "_actualFontSize": 29.145427286356824,
     "_fontSize": 24,
     "_fontFamily": "Arial",
     "_lineHeight": 30,
@@ -1560,7 +1560,7 @@
     "_string": "Enter text here...",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
-    "_actualFontSize": 23.538230884557723,
+    "_actualFontSize": 24.287856071964022,
     "_fontSize": 20,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -1680,7 +1680,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 136.00286276264555,
+      "width": 137.3532610481168,
       "height": 37.8
     },
     "_anchorPoint": {
@@ -1716,10 +1716,10 @@
       "b": 51,
       "a": 255
     },
-    "_string": "password：",
+    "_string": "Password：",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 28.245877061469265,
+    "_actualFontSize": 29.145427286356824,
     "_fontSize": 24,
     "_fontFamily": "Arial",
     "_lineHeight": 30,
@@ -2224,7 +2224,7 @@
     "_string": "Enter text here...",
     "_horizontalAlign": 0,
     "_verticalAlign": 1,
-    "_actualFontSize": 23.538230884557723,
+    "_actualFontSize": 24.287856071964022,
     "_fontSize": 20,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -2344,7 +2344,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 134.69063792623533,
+      "width": 137.36498414969736,
       "height": 37.8
     },
     "_anchorPoint": {
@@ -2380,10 +2380,10 @@
       "b": 51,
       "a": 255
     },
-    "_string": "nickname：",
+    "_string": "Nickname：",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 28.245877061469265,
+    "_actualFontSize": 29.145427286356824,
     "_fontSize": 24,
     "_fontFamily": "Arial",
     "_lineHeight": 30,
@@ -2859,7 +2859,7 @@
     "_string": "login",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 23.538230884557723,
+    "_actualFontSize": 24.287856071964022,
     "_fontSize": 20,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -3739,7 +3739,7 @@
     "_string": "Register a new account",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 17.653673163418294,
+    "_actualFontSize": 18.215892053973015,
     "_fontSize": 15,
     "_fontFamily": "Arial",
     "_lineHeight": 15,
@@ -4469,8 +4469,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 82.4347701346039,
-      "height": 25.199999999999996
+      "width": 82.46147762345679,
+      "height": 25.200000000000003
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -4508,7 +4508,7 @@
     "_string": "statusstatus",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 16.476761619190405,
+    "_actualFontSize": 17.001499250374813,
     "_fontSize": 14,
     "_fontFamily": "Arial",
     "_lineHeight": 20,
@@ -4568,7 +4568,7 @@
     "_left": 0,
     "_right": 0,
     "_top": 0,
-    "_bottom": 12.599999999999996,
+    "_bottom": 12.599999999999993,
     "_horizontalCenter": 0,
     "_verticalCenter": 0,
     "_isAbsLeft": true,
@@ -4737,7 +4737,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 720,
-      "height": 1334
+      "height": 1333.9999999999998
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",

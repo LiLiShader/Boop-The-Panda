@@ -143,7 +143,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 720,
-      "height": 1334
+      "height": 1333.9999999999998
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -64321,8 +64321,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 148.44427812904308,
-      "height": 79.59999999999998
+      "width": 148.43501959906683,
+      "height": 79.6
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -64360,7 +64360,7 @@
     "_string": "SetUp",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 58.84557721139431,
+    "_actualFontSize": 60.71964017991005,
     "_fontSize": 50,
     "_fontFamily": "Arial",
     "_lineHeight": 60,
@@ -64437,7 +64437,7 @@
     "_target": null,
     "_left": 0,
     "_right": 0,
-    "_top": 21.200000000000053,
+    "_top": 21.200000000000045,
     "_bottom": 0,
     "_horizontalCenter": 0,
     "_verticalCenter": 0,
@@ -76699,7 +76699,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 123.30638865088201,
+      "width": 125.52570700939789,
       "height": 50.400000000000006
     },
     "_anchorPoint": {
@@ -76735,10 +76735,10 @@
       "b": 255,
       "a": 255
     },
-    "_string": "showPayInfo",
+    "_string": "ShowPayInfo",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 23.538230884557723,
+    "_actualFontSize": 24.287856071964022,
     "_fontSize": 20,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -78434,7 +78434,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": -632,
+      "y": -631.9999999999999,
       "z": 0
     },
     "_lrot": {
@@ -79172,7 +79172,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 119.55049057492784,
+      "width": 119.55276523166232,
       "height": 54.400000000000006
     },
     "_anchorPoint": {
@@ -79211,7 +79211,7 @@
     "_string": "SetUp",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 47.07646176911545,
+    "_actualFontSize": 48.575712143928044,
     "_fontSize": 40,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -80012,7 +80012,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 103.96668619532493,
+      "width": 103.96865449128327,
       "height": 54.400000000000006
     },
     "_anchorPoint": {
@@ -80051,7 +80051,7 @@
     "_string": "Shop",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 47.07646176911545,
+    "_actualFontSize": 48.575712143928044,
     "_fontSize": 40,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -80852,7 +80852,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 208.46403050513783,
+      "width": 208.4680552918234,
       "height": 54.400000000000006
     },
     "_anchorPoint": {
@@ -80891,7 +80891,7 @@
     "_string": "Homepage",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 47.07646176911545,
+    "_actualFontSize": 48.575712143928044,
     "_fontSize": 40,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -81692,7 +81692,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 161.77123263413736,
+      "width": 161.77433857858915,
       "height": 54.400000000000006
     },
     "_anchorPoint": {
@@ -81731,7 +81731,7 @@
     "_string": "Ranking",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 47.07646176911545,
+    "_actualFontSize": 48.575712143928044,
     "_fontSize": 40,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -82532,7 +82532,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 252.95010162159136,
+      "width": 252.95500179337864,
       "height": 54.400000000000006
     },
     "_anchorPoint": {
@@ -82571,7 +82571,7 @@
     "_string": "Achievement",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 47.07646176911545,
+    "_actualFontSize": 48.575712143928044,
     "_fontSize": 40,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -84207,7 +84207,7 @@
     "_contentSize": {
       "__type__": "cc.Size",
       "width": 720,
-      "height": 1334
+      "height": 1333.9999999999998
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",

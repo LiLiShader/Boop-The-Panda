@@ -375,6 +375,28 @@ export class RandomAdManager {
             App.audio.resumeMusic();
         }, 8000); // 广告8秒后自动关闭
 
+        // 广告图片和链接池
+        const adLinks = [
+            'https://sgzzlb.lingxigames.com/',
+            'https://sgzzlb.lingxigames.com/',
+            'https://sgzzlb.lingxigames.com/',
+            'https://sgzzlb.lingxigames.com/',
+            'https://sgzzlb.lingxigames.com/',
+            'https://sgzzlb.lingxigames.com/'
+        ];
+        const adImgs = [
+            'http://game-01-6goq2s6z60c83eb7-1308501080.tcloudbaseapp.com/ad/1.jpg',
+            'http://game-01-6goq2s6z60c83eb7-1308501080.tcloudbaseapp.com/ad/2.jpg',
+            'http://game-01-6goq2s6z60c83eb7-1308501080.tcloudbaseapp.com/ad/3.jpg',
+            'http://game-01-6goq2s6z60c83eb7-1308501080.tcloudbaseapp.com/ad/4.jpg',
+            'http://game-01-6goq2s6z60c83eb7-1308501080.tcloudbaseapp.com/ad/5.jpg',
+            'http://game-01-6goq2s6z60c83eb7-1308501080.tcloudbaseapp.com/ad/6.jpg'
+        ];
+        // 随机选一个
+        const idx = Math.floor(Math.random() * adLinks.length);
+        const adLinkUrl = adLinks[idx];
+        const adImgUrl = adImgs[idx];
+
         if (sys.isBrowser && typeof document !== 'undefined') {
             try {
                 const adContainer = document.createElement('div');
@@ -392,11 +414,11 @@ export class RandomAdManager {
 
                 // 广告图片和跳转链接
                 const adLink = document.createElement('a');
-                adLink.href = 'https://detail.tmall.com/item.htm?spm=a21n57.sem.item.3.236d3903l9pR2t&priceTId=2147801a17534387344556754e1939&utparam=%7B%22aplus_abtest%22%3A%220d4aa28a79935caeba9ac1c88b27fe14%22%7D&id=793542266582&ns=1&xxc=ad_ztc&pisk=gzfZDDA1HIjCK7t9I6Oq4PcaqgR93Ir5IstXoZbD5hxM5iOV3gKIGPd_HIS2YiK6CCxsgs-hrrh_WRpD0GdMHOtXfnRVkgzQV7N5WNdvGuZ7N8KakJR-jfYmcHAHrI8iP4A3pNdviouIi8NPWGFxkAoMoe4elEMimivG-2YvxFDMIixHKUYSjIjcmpAHyULiIhDitDxpyVcMSnvHKU8SImvcmw4elEODmivg8wDh0_fxYE9g-F86Zleywd-lSHllR68GdAQwY7F5TQ9yqbtEijfe7ZrJcncgaHX1n1OhskcptaBCjeRz_0LNKaRM7iF-6Cbl-tvNg-gJD97hFpWK5rKATwfGnwnameBcfBxhmczw06j1DC13oAxlCG9ftpo37nC1bsJOZuGpj95dgC6Qbbtvn919e1Zn_QXR5C6cqkM6jT8c48nv-3cNMOom3dYp83aU8DbW_LwpyCttHxpTWe-7SdDxHdjJ83aU8xHvBKLeVPvG.'; // 你的广告落地页链接
+                adLink.href = adLinkUrl;
                 adLink.target = '_blank';
 
                 const adImg = document.createElement('img');
-                adImg.src = 'http://game-01-6goq2s6z60c83eb7-1308501080.tcloudbaseapp.com/ad/image.png'; // 你的广告图片链接
+                adImg.src = adImgUrl;
                 adImg.style.width = '320px';
                 adImg.style.height = '240px';
                 adImg.style.borderRadius = '12px';

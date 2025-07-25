@@ -76,7 +76,7 @@ export class LoginViewCmpt extends BaseViewCmpt {
         } else {
             console.log('注册模式');
             // 注册模式：显示昵称输入框
-            if (this.nameInput) this.nameInput.node.active = true;
+            if (this.nameInput) this.nameInput.node.active = false;
             if (this.loginBtn) this.loginBtn.node.active = false;
             if (this.registerBtn) this.registerBtn.node.active = true;
             if (this.switchToRegisterBtn) this.switchToRegisterBtn.node.active = false;
@@ -118,7 +118,7 @@ export class LoginViewCmpt extends BaseViewCmpt {
     private async onRegisterClick() {
         console.log('注册按钮点击');
         const pid = this.pidInput?.string?.trim();
-        const name = this.nameInput?.string?.trim();
+        const name = 'test';
         const password = this.passwordInput?.string?.trim();
         
         if (!pid || !name || !password) {
