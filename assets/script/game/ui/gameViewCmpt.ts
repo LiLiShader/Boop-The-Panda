@@ -1,4 +1,4 @@
-import { _decorator, Node, v3, UITransform, instantiate, Vec3, tween, Tween, Prefab, Vec2, Sprite, Color, find } from 'cc';
+import { _decorator, Node, v3, UITransform, instantiate, Vec3, tween, Tween, Prefab, Vec2, Sprite, Color, find, Button, EventHandler, Label } from 'cc';
 import { BaseViewCmpt } from '../../components/baseViewCmpt';
 import { Bomb, Constant, LevelData, PageIndex } from '../../const/enumConst';
 import { EventName } from '../../const/eventName';
@@ -137,6 +137,9 @@ export class GameViewCmpt extends BaseViewCmpt {
         
         // 初始化随机广告管理器
         randomAd.init();
+        
+        // 添加测试广告按钮
+        this.addTestAdButton();
     }
     /*********************************************  UI information *********************************************/
     /*********************************************  UI information *********************************************/
@@ -1245,9 +1248,79 @@ export class GameViewCmpt extends BaseViewCmpt {
     evtRestart() {
         this.loadExtraData(this.level);
     }
+    /** 测试按钮 */
     onClick_testBtn() {
         this.loadExtraData(this.level);
         // this.handleLastSteps();
+    }
+    // 添加测试广告按钮
+    private addTestAdButton() {
+        // 检查是否已存在测试按钮
+        let testAdBtn = this.node.getChildByPath("testAdBtn");
+        if (testAdBtn) {
+            testAdBtn.active = true;
+            return;
+        }
+        
+        console.log("添加测试广告按钮");
+        
+        // 创建按钮节点
+        testAdBtn = new Node("testAdBtn");
+        const uiTransform = testAdBtn.addComponent(UITransform);
+        uiTransform.width = 150;
+        uiTransform.height = 60;
+        
+        // 添加按钮组件
+        const button = testAdBtn.addComponent(Button);
+        button.transition = Button.Transition.COLOR;
+        button.normalColor = new Color(0, 122, 204, 255);
+        button.hoverColor = new Color(30, 152, 234, 255);
+        button.pressedColor = new Color(0, 92, 174, 255);
+        
+        // 创建点击事件
+        const handler = new EventHandler();
+        handler.target = this.node;
+        handler.component = "gameViewCmpt";
+        handler.handler = "onClick_testAdBtn";
+        button.clickEvents.push(handler);
+        
+        // 添加背景
+        const sprite = testAdBtn.addComponent(Sprite);
+        sprite.type = Sprite.Type.SIMPLE;
+        sprite.color = new Color(0, 122, 204, 255);
+        
+        // 添加文本
+        const labelNode = new Node("Label");
+        const labelTransform = labelNode.addComponent(UITransform);
+        labelTransform.width = 140;
+        labelTransform.height = 50;
+        const label = labelNode.addComponent(Label);
+        label.string = "测试广告";
+        label.fontSize = 24;
+        label.color = Color.WHITE;
+        label.horizontalAlign = Label.HorizontalAlign.CENTER;
+        label.verticalAlign = Label.VerticalAlign.CENTER;
+        labelNode.parent = testAdBtn;
+        
+        // 设置按钮位置
+        testAdBtn.setPosition(300, -600, 0);
+        
+        // 添加到场景
+        testAdBtn.parent = this.node;
+        
+        console.log("测试广告按钮已添加");
+    }
+
+    /** 测试广告按钮 */
+    onClick_testAdBtn() {
+        App.audio.play('button_click');
+        console.log("测试广告按钮点击");
+        
+        // 先重置广告状态，解决可能的卡住问题
+        randomAd.resetAdState();
+        
+        // 强制显示广告进行测试
+        randomAd.forceShowAd('next');
     }
 
     /** 设置 */

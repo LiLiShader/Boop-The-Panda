@@ -19,7 +19,7 @@ export class RandomAdManager {
         // 游戏开始后多久才能显示第一个广告(秒)
         initialDelay: 30,
         // 是否使用Google Ad Placement API
-        useGoogleAdPlacement: true
+        useGoogleAdPlacement: false
     };
 
     // 上次显示广告的时间
@@ -74,6 +74,18 @@ export class RandomAdManager {
      * 初始化Google Ad Placement API
      */
     private initGoogleAdPlacement() {
+        // 检查是否在浏览器环境中运行
+        if (!sys.isBrowser) {
+            console.log("非浏览器环境，广告功能不可用");
+            return;
+        }
+        
+        // 检查window对象是否存在
+        if (typeof window === 'undefined') {
+            console.log("window对象不存在，无法初始化广告");
+            return;
+        }
+        
         // 检查全局window对象是否存在adBreak函数
         if (window['adBreak']) {
             this.adBreak = window['adBreak'];
@@ -90,48 +102,105 @@ export class RandomAdManager {
      * 加载Google Ad Placement API脚本
      */
     private loadGoogleAdPlacementScript() {
-        // 这里应该由游戏开发者在HTML中提前加载广告脚本
-        // 这里只是提供一个动态加载的示例
+        // 检查是否在浏览器环境中运行
+        if (!sys.isBrowser) {
+            console.log("非浏览器环境，无法加载广告脚本");
+            return;
+        }
+        
+        // 检查document对象是否存在
+        if (typeof document === 'undefined' || !document.head) {
+            console.log("document对象不存在，无法加载广告脚本");
+            return;
+        }
+        
         console.log("尝试动态加载Google Ad Placement API脚本");
         
-        const script = document.createElement('script');
-        script.async = true;
-        script.dataset.adFrequencyHint = "30s";
-        script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"; // 替换为你的发布商ID
-        script.crossOrigin = "anonymous";
-        script.onload = () => {
-            // 初始化adBreak函数
-            if (!window['adsbygoogle']) window['adsbygoogle'] = [];
-            window['adBreak'] = window['adConfig'] = function(o) {window['adsbygoogle'].push(o)};
-            this.adBreak = window['adBreak'];
-            this.adReady = true;
-            console.log("Google Ad Placement API脚本加载成功");
-        };
-        script.onerror = () => {
-            console.error("Google Ad Placement API脚本加载失败");
-            this.adReady = false;
-        };
+        try {
+            const script = document.createElement('script');
+            script.async = true;
+            script.dataset.adFrequencyHint = "30s";
+            script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3940256099942544"; // 测试ID
+            script.crossOrigin = "anonymous";
+            script.onload = () => {
+                // 初始化adBreak函数
+                if (!window['adsbygoogle']) window['adsbygoogle'] = [];
+                window['adBreak'] = window['adConfig'] = function(o) {window['adsbygoogle'].push(o)};
+                this.adBreak = window['adBreak'];
+                this.adReady = true;
+                console.log("Google Ad Placement API脚本加载成功");
+                
+                // 预加载广告
+                this.preloadAds();
+            };
+            script.onerror = () => {
+                console.error("Google Ad Placement API脚本加载失败");
+                this.adReady = false;
+            };
+            
+            document.head.appendChild(script);
+        } catch (e) {
+            console.error("加载广告脚本时发生错误:", e);
+        }
+    }
+
+    /**
+     * 预加载广告
+     */
+    private preloadAds() {
+        if (!this.adBreak) return;
         
-        document.head.appendChild(script);
+        try {
+            console.log("预加载广告...");
+            this.adBreak({
+                preloadAdBreaks: 'on',
+                onReady: () => {
+                    console.log('广告预加载完成，可以显示广告了');
+                },
+                onError: (e) => {
+                    console.error('广告预加载失败', e);
+                }
+            });
+        } catch (e) {
+            console.error('预加载广告时发生错误', e);
+        }
     }
 
     /**
      * 初始化通用广告
      */
     private initGenericAd() {
-        // 这里可以实现其他广告SDK的初始化逻辑
+        // 检查是否在浏览器环境中运行
+        if (!sys.isBrowser) {
+            console.log("非浏览器环境，广告功能不可用");
+            return;
+        }
+        
+        // 检查window对象是否存在
+        if (typeof window === 'undefined') {
+            console.log("window对象不存在，无法初始化广告");
+            return;
+        }
+        
         console.log("初始化通用广告SDK");
         
-        // 示例：检查是否存在其他广告SDK
-        if (window['gamebridge'] && window['gamebridge'].showAd) {
-            console.log("检测到gamebridge广告SDK");
+        try {
+            // 示例：检查是否存在其他广告SDK
+            if (window['gamebridge'] && typeof window['gamebridge'].showAd === 'function') {
+                console.log("检测到gamebridge广告SDK");
+                this.adReady = true;
+            } else if (window['pyun'] && typeof window['pyun'].advertingPull === 'function') {
+                console.log("检测到pyun广告SDK");
+                this.adReady = true;
+            } else {
+                console.warn("未检测到支持的广告SDK，将使用模拟广告");
+                // 即使没有广告SDK，也设置为可用，使用模拟广告
+                this.adReady = true;
+            }
+        } catch (e) {
+            console.error("初始化通用广告SDK时发生错误:", e);
+            // 即使出错，也设置为可用，使用模拟广告
             this.adReady = true;
-        } else if (window['pyun'] && window['pyun'].advertingPull) {
-            console.log("检测到pyun广告SDK");
-            this.adReady = true;
-        } else {
-            console.warn("未检测到支持的广告SDK");
-            this.adReady = false;
         }
     }
 
@@ -183,135 +252,169 @@ export class RandomAdManager {
     }
 
     /**
+     * 强制显示广告（用于测试）
+     * @param adType 广告类型：'next', 'reward', 'browse'
+     */
+    public forceShowAd(adType: 'next' | 'reward' | 'browse' = 'next') {
+        console.log('[AdDebug] forceShowAd called, adType:', adType, 'adReady:', this.adReady, 'adShowing:', this.adShowing);
+        // 重置上次显示时间，以便能立即显示
+        this.lastAdTime = 0;
+        
+        if (this.adShowing) {
+            console.log('[AdDebug] 广告正在显示中，请稍后再试');
+            // 如果广告状态卡住，强制重置
+            setTimeout(() => {
+                this.resetAdState();
+            }, 500);
+            return;
+        }
+        
+        console.log(`强制显示${adType}类型广告`);
+        this.showAd();
+    }
+
+    /**
+     * 重置广告状态
+     * 用于解决广告状态卡住的问题
+     */
+    public resetAdState() {
+        console.log('[AdDebug] 重置广告状态');
+        this.adShowing = false;
+        this.lastAdTime = 0;
+    }
+
+    /**
      * 显示广告
      */
     private showAd() {
-        console.log("显示H5插屏广告");
+        console.log('[AdDebug] showAd called, adReady:', this.adReady, 'adShowing:', this.adShowing);
+        if (this.adShowing) {
+            console.log('[AdDebug] 广告正在显示中，不重复触发');
+            return;
+        }
         this.adShowing = true;
-        
-        // 暂停游戏音频
         App.audio.stopMusic();
-        
-        if (this.config.useGoogleAdPlacement && this.adBreak) {
-            // 使用Google Ad Placement API显示广告
-            this.adBreak({
-                type: 'next', // 可选值: 'next', 'reward', 'browse'
-                name: 'level-complete',
-                beforeAd: () => {
-                    // 广告显示前的回调
-                    console.log("广告即将显示");
-                },
-                afterAd: () => {
-                    // 广告显示后的回调
-                    console.log("广告显示完成");
-                    this.adShowing = false;
-                    App.audio.resumeMusic();
-                },
-                adBreakDone: (placementInfo) => {
-                    // 广告显示完成的回调，包含广告信息
-                    console.log("广告显示完成，状态:", placementInfo.breakStatus);
+        // 只用模拟广告
+        this.showGenericAd();
+    }
+
+    /**
+     * 显示通用广告（优先穿山甲H5）
+     */
+    private showGenericAd() {
+        console.log('[AdDebug] showGenericAd called, adShowing:', this.adShowing);
+        if (!sys.isBrowser) {
+            console.log('[AdDebug] 非浏览器环境，无法显示广告');
+            this.adShowing = false;
+            App.audio.resumeMusic();
+            return;
+        }
+        try {
+            // 优先检测穿山甲H5广告SDK
+            if (window['tt'] && typeof window['tt'].showInterstitialAd === 'function') {
+                console.log('[AdDebug] 使用穿山甲H5插屏广告SDK');
+                this.showPangleAd();
+                return;
+            }
+            // 其他国内SDK可在此扩展...
+            // ...
+            // 兜底：模拟广告
+            console.log('[AdDebug] 使用模拟广告 showMockAd');
+            this.showMockAd();
+            setTimeout(() => {
+                if (this.adShowing) {
+                    console.log('[AdDebug] 广告显示超时，自动重置状态');
                     this.adShowing = false;
                     App.audio.resumeMusic();
                 }
-            });
-        } else {
-            // 使用通用广告SDK显示广告
-            this.showGenericAd();
+            }, 5000);
+        } catch (e) {
+            console.error('[AdDebug] showGenericAd异常:', e);
+            this.adShowing = false;
+            App.audio.resumeMusic();
         }
     }
 
     /**
-     * 显示通用广告
+     * 调用穿山甲H5插屏广告（测试参数）
      */
-    private showGenericAd() {
-        // 根据检测到的广告SDK选择合适的实现
-        if (window['gamebridge'] && window['gamebridge'].showAd) {
-            // gamebridge广告SDK
-            window['gamebridge'].showAd('next', {
-                beforeAd: () => {
-                    console.log("广告即将显示");
+    private showPangleAd() {
+        this.adShowing = true;
+        try {
+            window['tt'].showInterstitialAd({
+                app_id: '5001121', // 官方测试app_id
+                slot_id: '901121375', // 官方测试slot_id
+                success: function() {
+                    console.log('[AdDebug] 穿山甲插屏广告展示成功');
                 },
-                afterAd: () => {
-                    console.log("广告显示完成");
+                fail: (err) => {
+                    console.error('[AdDebug] 穿山甲插屏广告展示失败', err);
+                    this.adShowing = false;
+                    this.showMockAd();
+                },
+                complete: () => {
                     this.adShowing = false;
                     App.audio.resumeMusic();
                 }
             });
-        } else if (window['pyun'] && window['pyun'].advertingPull) {
-            // 创建广告容器
-            let adContainer = document.createElement('div');
-            adContainer.id = 'ad-container';
-            adContainer.style.position = 'fixed';
-            adContainer.style.top = '0';
-            adContainer.style.left = '0';
-            adContainer.style.width = '100%';
-            adContainer.style.height = '100%';
-            adContainer.style.zIndex = '9999';
-            adContainer.style.display = 'none';
-            document.body.appendChild(adContainer);
-            
-            // 创建广告元素
-            let adElement = document.createElement('div');
-            adElement.id = 'ad-element';
-            adContainer.appendChild(adElement);
-            
-            // 显示广告容器
-            adContainer.style.display = 'block';
-            
-            // 使用pyun广告SDK
-            window['pyun'].advertingPull({
-                el: 'ad-element',
-                app_id: 'your_app_id', // 替换为实际的应用ID
-                space_id: 'your_space_id', // 替换为实际的广告位ID
-                displayed: 1,
-                provider_code: 'your_provider_code', // 替换为实际的流量主编号
-                external: 1,
-                success: (data) => {
-                    console.log('广告加载成功');
-                },
-                failure: (cause) => {
-                    console.warn('广告加载失败:', cause);
-                    this.adShowing = false;
-                    App.audio.resumeMusic();
-                    adContainer.style.display = 'none';
-                }
-            });
-            
-            // 添加关闭按钮
-            let closeButton = document.createElement('div');
-            closeButton.style.position = 'absolute';
-            closeButton.style.top = '10px';
-            closeButton.style.right = '10px';
-            closeButton.style.width = '30px';
-            closeButton.style.height = '30px';
-            closeButton.style.background = 'rgba(0,0,0,0.5)';
-            closeButton.style.color = '#fff';
-            closeButton.style.borderRadius = '15px';
-            closeButton.style.textAlign = 'center';
-            closeButton.style.lineHeight = '30px';
-            closeButton.style.cursor = 'pointer';
-            closeButton.innerText = 'X';
-            adContainer.appendChild(closeButton);
-            
-            // 添加关闭事件
-            closeButton.addEventListener('click', () => {
-                adContainer.style.display = 'none';
-                this.adShowing = false;
-                App.audio.resumeMusic();
-            });
-            
-            // 5秒后自动添加关闭按钮
-            setTimeout(() => {
-                closeButton.style.display = 'block';
-            }, 5000);
-        } else {
-            // 模拟广告行为
-            console.log("【模拟】显示插屏广告");
-            setTimeout(() => {
-                console.log("【模拟】广告显示完成");
-                this.adShowing = false;
-                App.audio.resumeMusic();
-            }, 2000);
+        } catch (e) {
+            console.error('[AdDebug] showPangleAd异常:', e);
+            this.adShowing = false;
+            this.showMockAd();
+        }
+    }
+
+    /**
+     * 显示模拟广告
+     */
+    private showMockAd() {
+        console.log('[AdDebug] showMockAd called, adShowing:', this.adShowing);
+        console.log("显示模拟广告");
+        
+        // 简单的模拟广告，2秒后自动关闭
+        setTimeout(() => {
+            console.log("【模拟】广告显示完成");
+            this.adShowing = false;
+            App.audio.resumeMusic();
+        }, 2000);
+        
+        // 如果在浏览器环境中，可以创建一个简单的模拟广告UI
+        if (sys.isBrowser && typeof document !== 'undefined') {
+            try {
+                // 创建一个简单的模拟广告弹窗
+                const adContainer = document.createElement('div');
+                adContainer.id = 'mock-ad-container';
+                adContainer.style.position = 'fixed';
+                adContainer.style.top = '0';
+                adContainer.style.left = '0';
+                adContainer.style.width = '100vw';
+                adContainer.style.height = '100vh';
+                adContainer.style.backgroundColor = 'rgba(0,0,0,0.8)';
+                adContainer.style.zIndex = '99999';
+                adContainer.style.display = 'flex';
+                adContainer.style.justifyContent = 'center';
+                adContainer.style.alignItems = 'center';
+                
+                const adContent = document.createElement('div');
+                adContent.style.backgroundColor = '#4285f4';
+                adContent.style.padding = '40px 60px';
+                adContent.style.borderRadius = '10px';
+                adContent.style.color = 'white';
+                adContent.style.fontSize = '32px';
+                adContent.innerText = '模拟广告';
+                adContainer.appendChild(adContent);
+                
+                document.body.appendChild(adContainer);
+                
+                // 2秒后自动移除
+                setTimeout(() => {
+                    if (document.body.contains(adContainer)) {
+                        document.body.removeChild(adContainer);
+                    }
+                }, 2000);
+            } catch (e) {
+                console.error('[AdDebug] 创建模拟广告UI失败:', e);
+            }
         }
     }
 
