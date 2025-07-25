@@ -369,19 +369,14 @@ export class RandomAdManager {
      */
     private showMockAd() {
         console.log('[AdDebug] showMockAd called, adShowing:', this.adShowing);
-        console.log("显示模拟广告");
-        
-        // 简单的模拟广告，2秒后自动关闭
+        this.adShowing = true;
         setTimeout(() => {
-            console.log("【模拟】广告显示完成");
             this.adShowing = false;
             App.audio.resumeMusic();
-        }, 2000);
-        
-        // 如果在浏览器环境中，可以创建一个简单的模拟广告UI
+        }, 8000); // 广告8秒后自动关闭
+
         if (sys.isBrowser && typeof document !== 'undefined') {
             try {
-                // 创建一个简单的模拟广告弹窗
                 const adContainer = document.createElement('div');
                 adContainer.id = 'mock-ad-container';
                 adContainer.style.position = 'fixed';
@@ -394,24 +389,53 @@ export class RandomAdManager {
                 adContainer.style.display = 'flex';
                 adContainer.style.justifyContent = 'center';
                 adContainer.style.alignItems = 'center';
-                
-                const adContent = document.createElement('div');
-                adContent.style.backgroundColor = '#4285f4';
-                adContent.style.padding = '40px 60px';
-                adContent.style.borderRadius = '10px';
-                adContent.style.color = 'white';
-                adContent.style.fontSize = '32px';
-                adContent.innerText = '模拟广告';
-                adContainer.appendChild(adContent);
-                
+
+                // 广告图片和跳转链接
+                const adLink = document.createElement('a');
+                adLink.href = 'https://detail.tmall.com/item.htm?spm=a21n57.sem.item.3.236d3903l9pR2t&priceTId=2147801a17534387344556754e1939&utparam=%7B%22aplus_abtest%22%3A%220d4aa28a79935caeba9ac1c88b27fe14%22%7D&id=793542266582&ns=1&xxc=ad_ztc&pisk=gzfZDDA1HIjCK7t9I6Oq4PcaqgR93Ir5IstXoZbD5hxM5iOV3gKIGPd_HIS2YiK6CCxsgs-hrrh_WRpD0GdMHOtXfnRVkgzQV7N5WNdvGuZ7N8KakJR-jfYmcHAHrI8iP4A3pNdviouIi8NPWGFxkAoMoe4elEMimivG-2YvxFDMIixHKUYSjIjcmpAHyULiIhDitDxpyVcMSnvHKU8SImvcmw4elEODmivg8wDh0_fxYE9g-F86Zleywd-lSHllR68GdAQwY7F5TQ9yqbtEijfe7ZrJcncgaHX1n1OhskcptaBCjeRz_0LNKaRM7iF-6Cbl-tvNg-gJD97hFpWK5rKATwfGnwnameBcfBxhmczw06j1DC13oAxlCG9ftpo37nC1bsJOZuGpj95dgC6Qbbtvn919e1Zn_QXR5C6cqkM6jT8c48nv-3cNMOom3dYp83aU8DbW_LwpyCttHxpTWe-7SdDxHdjJ83aU8xHvBKLeVPvG.'; // 你的广告落地页链接
+                adLink.target = '_blank';
+
+                const adImg = document.createElement('img');
+                adImg.src = 'http://game-01-6goq2s6z60c83eb7-1308501080.tcloudbaseapp.com/ad/image.png'; // 你的广告图片链接
+                adImg.style.width = '320px';
+                adImg.style.height = '240px';
+                adImg.style.borderRadius = '12px';
+                adImg.style.boxShadow = '0 4px 24px rgba(0,0,0,0.3)';
+                adImg.style.cursor = 'pointer';
+                adLink.appendChild(adImg);
+
+                adContainer.appendChild(adLink);
+
+                // 关闭按钮
+                const closeBtn = document.createElement('div');
+                closeBtn.innerText = '×';
+                closeBtn.style.position = 'absolute';
+                closeBtn.style.top = '30px';
+                closeBtn.style.right = '40px';
+                closeBtn.style.fontSize = '36px';
+                closeBtn.style.color = '#fff';
+                closeBtn.style.cursor = 'pointer';
+                closeBtn.style.zIndex = '100000';
+                adContainer.appendChild(closeBtn);
+
+                closeBtn.onclick = () => {
+                    if (document.body.contains(adContainer)) {
+                        document.body.removeChild(adContainer);
+                    }
+                    this.adShowing = false;
+                    App.audio.resumeMusic();
+                };
+
                 document.body.appendChild(adContainer);
-                
-                // 2秒后自动移除
+
+                // 自动关闭
                 setTimeout(() => {
                     if (document.body.contains(adContainer)) {
                         document.body.removeChild(adContainer);
                     }
-                }, 2000);
+                    this.adShowing = false;
+                    App.audio.resumeMusic();
+                }, 8000);
             } catch (e) {
                 console.error('[AdDebug] 创建模拟广告UI失败:', e);
             }
