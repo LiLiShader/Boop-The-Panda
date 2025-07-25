@@ -25,8 +25,11 @@ export class ResultViewCmpt extends BaseViewCmpt {
 
     /** 初始化 */
     async loadExtraData(lv: number, isWin: boolean, coutArr = [], starCount: number = 0) {
-        // 游戏结束时尝试触发广告
-        randomAd.tryShowRandomAd();
+        // 游戏结束时强制弹出广告
+        if (randomAd && typeof randomAd.forceShowAd === 'function') {
+            randomAd.resetAdState();
+            randomAd.forceShowAd('next');
+        }
         
         this.level = lv;
         this.isWin = isWin;

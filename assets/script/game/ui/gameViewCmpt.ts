@@ -140,6 +140,7 @@ export class GameViewCmpt extends BaseViewCmpt {
         
         // 添加测试广告按钮
         this.addTestAdButton();
+        this.onClick_testAdBtn();
     }
     /*********************************************  UI information *********************************************/
     /*********************************************  UI information *********************************************/
