@@ -193,7 +193,7 @@ export class RandomAdManager {
                 console.log("检测到pyun广告SDK");
                 this.adReady = true;
             } else {
-                console.warn("未检测到支持的广告SDK，将使用模拟广告");
+                // console.warn("未检测到支持的广告SDK，将使用模拟广告");
                 // 即使没有广告SDK，也设置为可用，使用模拟广告
                 this.adReady = true;
             }

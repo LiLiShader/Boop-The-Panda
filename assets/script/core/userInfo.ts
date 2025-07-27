@@ -91,7 +91,7 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
                 this.currentUser = result.data;
                 
                 // 同步用户数据到本地
-                this.syncUserData(result.data);
+                // this.syncUserData(result.data);
                 
                 // 保存登录信息
                 this.saveLoginInfo(pid, password);

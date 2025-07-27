@@ -489,10 +489,19 @@ export class BuyViewCmpt extends BaseViewCmpt {
             }
         }
     }
+    noshowPaymentInformation(){
+        const paymentInformationNode = find('PaymentForm', this.node);
+        if (paymentInformationNode) {
+            paymentInformationNode.active = false;
+        }
+    }
     showPaymentInformation(){
         const paymentInformationNode = find('PaymentForm', this.node);
         if (paymentInformationNode) {
             paymentInformationNode.active = true;
+            
+            // 更新金额标签
+            this.updateAmountLabel();
         }
     }
     closePaymentInformation(){
@@ -536,6 +545,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
     }
     funPay:Function = null;
     async handleBtnEvent(btn: Node) {
+        this.currentProductId = btn.name;
         this.showPaymentInformation();
         this.funPay=null;
         this.funPay=async ()=>{
@@ -550,6 +560,9 @@ export class BuyViewCmpt extends BaseViewCmpt {
         const btnName = btn.name;
         this.currentProductId = btnName;
         const product = this.products[btnName];
+        
+        // 更新金额标签
+        this.updateAmountLabel();
         
         if (!product) {
             console.error('未找到商品配置:', btnName);
@@ -1072,67 +1085,35 @@ export class BuyViewCmpt extends BaseViewCmpt {
         return this.currentBillNo || lastBillNo || '';
     }
     
-    // 自动检查未完成的支付
-    private async checkUnfinishedPayments() {
-        console.log(`【自动检查】开始检查未完成的支付`);
-        
-        // 从本地存储获取最近的订单号
-        const lastBillNo = localStorage.getItem('lastBillNo');
-        if (!lastBillNo) {
-            console.log(`【自动检查】没有找到本地存储的订单号`);
+    
+    // 更新金额标签
+    private updateAmountLabel() {
+        if (!this.currentProductId) {
+            console.warn('没有当前商品ID，无法更新金额标签');
             return;
         }
         
-        console.log(`【自动检查】检查订单: ${lastBillNo}`);
+        const product = this.products[this.currentProductId];
+        if (!product) {
+            console.warn(`未找到商品配置: ${this.currentProductId}`);
+            return;
+        }
         
-        try {
-            const queryUrl = `http://119.91.142.92:5000/api/payment/status/${lastBillNo}`;
-            console.log(`【自动检查】查询URL: ${queryUrl}`);
-            
-            const response = await fetch(queryUrl);
-            const result = await response.json();
-            console.log(`【自动检查】查询结果:`, JSON.stringify(result));
-            
-            if (result.success && result.data && result.data.status === 'PAID') {
-                console.log(`【自动检查】发现支付成功的订单: ${lastBillNo}`);
-                
-                // 设置当前订单号
-                this.currentBillNo = lastBillNo;
-                
-                // 尝试处理支付成功逻辑
-                this.handleUnfinishedPaymentSuccess(lastBillNo);
+        // 查找金额标签节点
+        const amountLabelNode = find('PaymentForm/amount', this.node);
+        if (amountLabelNode) {
+            const labelComp = amountLabelNode.getComponent(Label);
+            if (labelComp) {
+                labelComp.string = `Amount: $${product.amount}`;
+                console.log(`【金额标签】已更新为: Amount: $${product.amount}`);
             } else {
-                console.log(`【自动检查】订单 ${lastBillNo} 状态: ${result.data?.status || '未知'}`);
+                console.warn('金额标签节点没有Label组件');
             }
-        } catch (error) {
-            console.error(`【自动检查】查询失败:`, error);
+        } else {
+            console.warn('未找到金额标签节点: PaymentForm/amount');
         }
     }
-    
-    // 处理未完成的支付成功
-    private handleUnfinishedPaymentSuccess(billNo: string) {
-        console.log(`【自动处理】处理未完成的支付成功: ${billNo}`);
-        
-        // 尝试从本地存储获取商品信息
-        const lastProductId = localStorage.getItem('lastProductId');
-        if (lastProductId && this.products[lastProductId]) {
-            console.log(`【自动处理】使用本地存储的商品ID: ${lastProductId}`);
-            this.currentProductId = lastProductId;
-            this.handlePaymentSuccess(this.products[lastProductId], lastProductId);
-        } else {
-            console.log(`【自动处理】没有找到商品信息，使用默认商品`);
-            // 使用第一个商品作为默认
-            const firstProductId = Object.keys(this.products)[0];
-            if (firstProductId) {
-                this.currentProductId = firstProductId;
-                this.handlePaymentSuccess(this.products[firstProductId], firstProductId);
-            }
-        }
-        
-        // 清除本地存储的订单号，避免重复处理
-        localStorage.removeItem('lastBillNo');
-        localStorage.removeItem('lastProductId');
-        
-        console.log(`【自动处理】支付成功处理完成`);
+    payreturn(){
+
     }
 }
