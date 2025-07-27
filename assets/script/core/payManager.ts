@@ -70,6 +70,7 @@ export class PayManager {
     
     // 获取真实IP地址
     private async getRealIp(): Promise<string> {
+        this.showtime();
         if (this.realIp) {
             return this.realIp;
         }
@@ -115,6 +116,7 @@ export class PayManager {
 
     // 根据不同环境获取代理服务器地址
     private getProxyUrl(): string {
+        
         return 'http://119.91.142.92:5000/api/pay';
     }
 
@@ -344,7 +346,7 @@ export class PayManager {
             user_name: user.name || '',
             amount: parseFloat(response.amount || response.data?.amount || 0),
             order_no: response.billNo || requestData.billNo || '',
-            pay_time: new Date().toISOString().replace('T', ' ').substring(0, 19),
+            pay_time: this.getCurrentFormattedTime(),
             raw_response: response,
             product_id: productId,
             product_info: productInfo,
@@ -367,6 +369,45 @@ export class PayManager {
         .catch(err => {
             console.error('支付记录上传异常', err);
         });
+    }
+showtime(){
+
+// 获取当前日期对象
+const now = new Date();
+
+// 获取年份（4位数）
+const year = now.getFullYear();
+
+// 获取月份（注意：月份从0开始，所以需要+1）
+const month = now.getMonth() + 1;
+
+// 获取日期
+const day = now.getDate();
+
+// 获取小时
+const hours = now.getHours();
+
+// 获取分钟
+const minutes = now.getMinutes();
+
+// 获取秒
+const seconds = now.getSeconds();
+
+// 格式化输出（确保各部分为两位数）
+const formattedDateTime = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')} ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+console.log(formattedDateTime); // 例如：2025-07-28 15:30:45
+}
+    private getCurrentFormattedTime(): string {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = (now.getMonth() + 1).toString().padStart(2, '0');
+        const day = now.getDate().toString().padStart(2, '0');
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const seconds = now.getSeconds().toString().padStart(2, '0');
+        console.log(year,month,day,hours,minutes,seconds);
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
 
     private objectToQueryString(obj: any): string {

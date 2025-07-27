@@ -377,12 +377,11 @@ export class RandomAdManager {
 
         // 广告图片和链接池
         const adLinks = [
-            'https://sgzzlb.lingxigames.com/',
-            'https://sgzzlb.lingxigames.com/',
-            'https://sgzzlb.lingxigames.com/',
-            'https://sgzzlb.lingxigames.com/',
-            'https://sgzzlb.lingxigames.com/',
-            'https://sgzzlb.lingxigames.com/'
+            'https://www.innersloth.com/games/among-us/',
+            'https://www.centurygames.com/games/kingshot/',
+            'https://play.google.com/store/apps/details?id=com.dreamgames.royalkingdom',
+            'https://play.google.com/store/apps/details?id=com.ningningstudio.kpopmagictiles',
+            'https://play.google.com/store/apps/details?id=com.humble.SlayTheSpire',
         ];
         const adImgs = [
             'http://game-01-6goq2s6z60c83eb7-1308501080.tcloudbaseapp.com/ad/1.jpg',
@@ -390,7 +389,6 @@ export class RandomAdManager {
             'http://game-01-6goq2s6z60c83eb7-1308501080.tcloudbaseapp.com/ad/3.jpg',
             'http://game-01-6goq2s6z60c83eb7-1308501080.tcloudbaseapp.com/ad/4.jpg',
             'http://game-01-6goq2s6z60c83eb7-1308501080.tcloudbaseapp.com/ad/5.jpg',
-            'http://game-01-6goq2s6z60c83eb7-1308501080.tcloudbaseapp.com/ad/6.jpg'
         ];
         // 随机选一个
         const idx = Math.floor(Math.random() * adLinks.length);

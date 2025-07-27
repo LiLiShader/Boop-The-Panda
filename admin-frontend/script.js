@@ -158,12 +158,29 @@ async function onQueryByTimeRange() {
         const allOrders = await fetchAllOrders();
         
         // 过滤出时间范围内的订单
-        const startDate = new Date(startTime).getTime();
-        const endDate = new Date(endTime).getTime();
+        // 将本地时间转换为UTC时间进行比较
+        const startDate = new Date(startTime + ':00').getTime();
+        const endDate = new Date(endTime + ':59').getTime();
+        
+        console.log('查询时间范围:', {
+            startTime: new Date(startDate).toISOString(),
+            endTime: new Date(endDate).toISOString()
+        });
         
         const matchedOrders = allOrders.filter(order => {
             if (!order.pay_time) return false;
-            const orderDate = new Date(order.pay_time).getTime();
+            
+            // 解析订单时间，转换为本地时间进行比较
+            const orderDate = new Date(order.pay_time);
+            
+            console.log('订单时间:', {
+                orderNo: order.order_no,
+                payTime: order.pay_time,
+                orderDateLocal: orderDate.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }),
+                orderDateUTC: orderDate.toISOString(),
+                inRange: orderDate >= startDate && orderDate <= endDate
+            });
+            
             return orderDate >= startDate && orderDate <= endDate;
         });
         
@@ -212,7 +229,7 @@ function onExportExcel() {
             '用户名': order.user_name || '',
             '订单号': order.order_no || '',
             '金额': order.amount || '',
-            '支付时间': order.pay_time || '',
+            '支付时间': formatDate(order.pay_time) || '',
             '商品': getOrderItemName(order) || '未知商品'
         }));
         
@@ -394,7 +411,7 @@ function updateOrdersList(orders) {
         orderElement.className = 'order-item';
         orderElement.innerHTML = `
             <p><strong>UserID:</strong> ${order.user_id || '未知'} <strong>Name:</strong> ${order.user_name || '未知'}</p>
-            <p><strong>Bill No:</strong> ${order.order_no || '未知'} <strong>Amount:</strong> ${order.amount || 0} <strong>Pay Time:</strong> ${order.pay_time || '未知'}</p>
+            <p><strong>Bill No:</strong> ${order.order_no || '未知'} <strong>Amount:</strong> ${order.amount || 0} <strong>Pay Time:</strong> ${formatDate(order.pay_time) || '未知'}</p>
             <p><strong>Product:</strong> ${productName}</p>
         `;
         
@@ -485,7 +502,7 @@ function showOrderDetail(order) {
             <div class="detail-value">
                 <p><strong>订单号:</strong> ${order.order_no || '未知'}</p>
                 <p><strong>金额:</strong> ${order.amount || 0}</p>
-                <p><strong>支付时间:</strong> ${order.pay_time || '未知'}</p>
+                <p><strong>支付时间:</strong> ${formatDate(order.pay_time) || '未知'}</p>
                 <p><strong>商品:</strong> ${itemName}</p>
             </div>
         </div>
@@ -531,15 +548,25 @@ function formatDate(dateString) {
     
     try {
         const date = new Date(dateString);
+        
+        // 检查日期是否有效
+        if (isNaN(date.getTime())) {
+            console.warn('无效的日期字符串:', dateString);
+            return dateString;
+        }
+        
+        // 使用中国时区格式化
         return date.toLocaleString('zh-CN', {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
             hour: '2-digit',
             minute: '2-digit',
-            second: '2-digit'
+            second: '2-digit',
+            timeZone: 'Asia/Shanghai'
         });
     } catch (error) {
+        console.error('格式化日期出错:', error, dateString);
         return dateString;
     }
 } 
