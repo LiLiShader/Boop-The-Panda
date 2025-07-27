@@ -12,6 +12,7 @@ import { StorageHelper, StorageHelperKey } from '../../utils/storageHelper';
 import { ToolsHelper } from '../../utils/toolsHelper';
 import { WxManager } from '../../wx/wxManager';
 import { Label } from 'cc';
+import { Color, Widget } from 'cc';
 const { ccclass, property } = _decorator;
 
 // 添加3D支付相关处理对话框节点
@@ -275,33 +276,39 @@ export class BuyViewCmpt extends BaseViewCmpt {
     private showAuth3DDialog(url: string) {
         if (!this.auth3DDialog) return;
         
-        console.log('显示3D验证对话框，验证URL:', url);
+        console.log(`【3D支付】显示3D验证对话框，验证URL: ${url}`);
         this.auth3DDialog.active = true;
         
         // 从URL中提取订单号
         let billNo = '';
         try {
+            console.log(`【3D支付】开始从URL中提取订单号`);
             // 尝试使用URL对象解析
             const urlObj = new URL(url);
             billNo = urlObj.searchParams.get('billNo') || '';
+            console.log(`【3D支付】使用URL对象提取订单号: ${billNo}`);
         } catch (e) {
+            console.warn(`【3D支付】URL对象解析失败，使用正则表达式提取`);
             // 如果URL解析失败，使用正则表达式
             const billNoMatch = url.match(/billNo=([^&]+)/);
             billNo = billNoMatch ? billNoMatch[1] : '';
+            console.log(`【3D支付】使用正则表达式提取订单号: ${billNo}`);
         }
         
         // 保存订单号用于后续查询
         if (billNo) {
-            console.log('提取到订单号:', billNo);
+            console.log(`【3D支付】成功提取到订单号: ${billNo}`);
             this.currentBillNo = billNo;
             
             // 开始轮询查询支付结果
+            console.log(`【3D支付】准备开始轮询查询支付结果`);
             this.startPollingPaymentResult();
         } else {
-            console.warn('未能从URL中提取订单号:', url);
+            console.error(`【3D支付错误】未能从URL中提取订单号: ${url}`);
         }
         
         // 打开验证页面 - 使用当前配置的实现方式
+        console.log(`【3D支付】打开3D验证页面: ${url}`);
         window.open(url, '_blank');
     }
     
@@ -621,52 +628,64 @@ export class BuyViewCmpt extends BaseViewCmpt {
     
     // 处理支付成功逻辑
     private handlePaymentSuccess(product: ProductConfig, btnName: string) {
-                // 发放钻石
-                if (product.diamonds) {
-                    GlobalFuncHelper.setGold(product.diamonds);
-                    App.event.emit(EventName.Game.UpdataGold);
-                }
-                
-                // 发放道具
-                let rewardText = [];
-                if (product.diamonds) {
-                    rewardText.push(`${product.diamonds} Diamonds`);
-                }
-                
-                // 发放炸弹道具
-                if (product.bombBomb) {
-                    const currentBombBomb = StorageHelper.getData(StorageHelperKey.BombBomb, 0);
-                    StorageHelper.setData(StorageHelperKey.BombBomb, currentBombBomb + product.bombBomb);
-                    rewardText.push(`${product.bombBomb} Bomb Blast`);
-                }
-                
-                if (product.bombHor) {
-                    const currentBombHor = StorageHelper.getData(StorageHelperKey.BombHor, 0);
-                    StorageHelper.setData(StorageHelperKey.BombHor, currentBombHor + product.bombHor);
-                    rewardText.push(`${product.bombHor} Horizontal Bomb`);
-                }
-                
-                if (product.bombVer) {
-                    const currentBombVer = StorageHelper.getData(StorageHelperKey.BombVer, 0);
-                    StorageHelper.setData(StorageHelperKey.BombVer, currentBombVer + product.bombVer);
-                    rewardText.push(`${product.bombVer} Vertical Bomb`);
-                }
-                
-                if (product.bombAllSame) {
-                    const currentBombAllSame = StorageHelper.getData(StorageHelperKey.BombAllSame, 0);
-                    StorageHelper.setData(StorageHelperKey.BombAllSame, currentBombAllSame + product.bombAllSame);
-                    rewardText.push(`${product.bombAllSame} Color Bomb`);
-                }
-                
-                // 如果是首充礼包，标记对应礼包已购买
-                if (product.isFirstCharge) {
-                    const itemNumber = parseInt(btnName.replace('itemBtn', ''));
-                    const storageKey = StorageHelperKey[`FirstChargeItem${itemNumber}`];
-                    StorageHelper.setBooleanData(storageKey, true);
-                    this.updateItemStatus();
-                }
-                
-                App.view.showMsgTips(`Purchase successful!`);
+        console.log(`【3D支付成功】开始处理商品 ${btnName}，商品配置:`, JSON.stringify(product));
+        
+        // 发放钻石
+        if (product.diamonds) {
+            const oldGold = GlobalFuncHelper.getGold();
+            GlobalFuncHelper.setGold(product.diamonds);
+            const newGold = GlobalFuncHelper.getGold();
+            console.log(`【3D支付成功】发放钻石: ${product.diamonds}，钻石变化: ${oldGold} -> ${newGold}`);
+            App.event.emit(EventName.Game.UpdataGold);
+        }
+        
+        // 发放道具
+        let rewardText = [];
+        if (product.diamonds) {
+            rewardText.push(`${product.diamonds} Diamonds`);
+        }
+        
+        // 发放炸弹道具
+        if (product.bombBomb) {
+            const currentBombBomb = StorageHelper.getData(StorageHelperKey.BombBomb, 0);
+            StorageHelper.setData(StorageHelperKey.BombBomb, currentBombBomb + product.bombBomb);
+            console.log(`【3D支付成功】发放炸弹道具: ${product.bombBomb}，数量变化: ${currentBombBomb} -> ${currentBombBomb + product.bombBomb}`);
+            rewardText.push(`${product.bombBomb} Bomb Blast`);
+        }
+        
+        if (product.bombHor) {
+            const currentBombHor = StorageHelper.getData(StorageHelperKey.BombHor, 0);
+            StorageHelper.setData(StorageHelperKey.BombHor, currentBombHor + product.bombHor);
+            console.log(`【3D支付成功】发放横向炸弹道具: ${product.bombHor}，数量变化: ${currentBombHor} -> ${currentBombHor + product.bombHor}`);
+            rewardText.push(`${product.bombHor} Horizontal Bomb`);
+        }
+        
+        if (product.bombVer) {
+            const currentBombVer = StorageHelper.getData(StorageHelperKey.BombVer, 0);
+            StorageHelper.setData(StorageHelperKey.BombVer, currentBombVer + product.bombVer);
+            console.log(`【3D支付成功】发放竖向炸弹道具: ${product.bombVer}，数量变化: ${currentBombVer} -> ${currentBombVer + product.bombVer}`);
+            rewardText.push(`${product.bombVer} Vertical Bomb`);
+        }
+        
+        if (product.bombAllSame) {
+            const currentBombAllSame = StorageHelper.getData(StorageHelperKey.BombAllSame, 0);
+            StorageHelper.setData(StorageHelperKey.BombAllSame, currentBombAllSame + product.bombAllSame);
+            console.log(`【3D支付成功】发放同类型炸弹道具: ${product.bombAllSame}，数量变化: ${currentBombAllSame} -> ${currentBombAllSame + product.bombAllSame}`);
+            rewardText.push(`${product.bombAllSame} Color Bomb`);
+        }
+        
+        // 如果是首充礼包，标记对应礼包已购买
+        if (product.isFirstCharge) {
+            const itemNumber = parseInt(btnName.replace('itemBtn', ''));
+            const storageKey = StorageHelperKey[`FirstChargeItem${itemNumber}`];
+            const oldValue = StorageHelper.getBooleanData(storageKey, false);
+            StorageHelper.setBooleanData(storageKey, true);
+            console.log(`【3D支付成功】标记首充礼包 ${itemNumber} 已购买，状态变化: ${oldValue} -> true`);
+            this.updateItemStatus();
+        }
+        
+        console.log(`【3D支付成功】奖励内容: ${rewardText.join(', ')}`);
+        App.view.showMsgTips(`Purchase successful!`);
     }
     
     // 轮询检查3D支付结果
@@ -796,64 +815,84 @@ export class BuyViewCmpt extends BaseViewCmpt {
     // 添加开始轮询方法
     private startPollingPaymentResult() {
         // 先清除可能存在的轮询
-        this.stopPolling();
+        if (this.pollingTimer) {
+            console.log(`【3D支付轮询】清除现有轮询定时器`);
+            this.stopPolling();
+        }
         
-        console.log(`开始轮询查询订单 ${this.currentBillNo} 的支付结果`);
+        console.log(`【3D支付轮询】开始轮询查询订单 ${this.currentBillNo} 的支付结果`);
         
         // 重置尝试次数
         this.pollingAttempts = 0;
         
         // 立即执行一次查询
+        console.log(`【3D支付轮询】立即执行第一次查询`);
         this.queryPaymentResult();
         
         // 设置轮询间隔
+        console.log(`【3D支付轮询】设置轮询间隔: ${this.POLLING_INTERVAL}ms, 最大尝试次数: ${this.MAX_POLLING_ATTEMPTS}`);
         this.pollingTimer = setInterval(() => {
             this.pollingAttempts++;
             
+            console.log(`【3D支付轮询】执行第 ${this.pollingAttempts + 1} 次查询`);
             // 查询支付结果
             this.queryPaymentResult();
             
             // 如果超过最大尝试次数，停止轮询
             if (this.pollingAttempts >= this.MAX_POLLING_ATTEMPTS) {
-                console.log(`订单 ${this.currentBillNo} 轮询超时，已停止查询`);
+                console.log(`【3D支付轮询】订单 ${this.currentBillNo} 轮询超时，已停止查询`);
                 this.stopPolling();
                 
                 // 显示超时提示
                 App.view.showMsgTips('支付查询超时，如已支付请稍后检查道具');
             }
         }, this.POLLING_INTERVAL);
+        
+        console.log(`【3D支付轮询】轮询定时器已设置，ID: ${this.pollingTimer}`);
     }
 
     // 添加停止轮询方法
     private stopPolling() {
         if (this.pollingTimer) {
+            console.log(`【3D支付轮询】停止轮询，清除定时器 ID: ${this.pollingTimer}`);
             clearInterval(this.pollingTimer);
             this.pollingTimer = null;
+        } else {
+            console.log(`【3D支付轮询】没有活动的轮询定时器需要清除`);
         }
     }
 
-    // 查询支付结果的方法
+    // 查询支付结果的方法 - 添加更多详细日志
     private async queryPaymentResult() {
         // 如果没有订单号，不进行查询
         if (!this.currentBillNo) {
-            console.warn('没有订单号，无法查询支付结果');
+            console.error('【3D支付错误】没有订单号，无法查询支付结果');
             return;
         }
         
-        console.log(`正在查询订单 ${this.currentBillNo} 的支付结果 (第${this.pollingAttempts + 1}次)`);
+        console.log(`【3D支付轮询】正在查询订单 ${this.currentBillNo} 的支付结果 (第${this.pollingAttempts + 1}次)`);
         
         try {
-            // 查询支付状态API
-            const response = await fetch(`http://119.91.142.92:5000/api/payment/status/${this.currentBillNo}`);
-            const result = await response.json();
+            // 构建查询URL
+            const queryUrl = `http://119.91.142.92:5000/api/payment/status/${this.currentBillNo}`;
+            console.log(`【3D支付轮询】查询URL: ${queryUrl}`);
             
-            console.log('查询支付结果:', result);
+            // 查询支付状态API
+            console.log(`【3D支付轮询】开始发送请求...`);
+            const response = await fetch(queryUrl);
+            console.log(`【3D支付轮询】收到响应状态: ${response.status}`);
+            
+            // 解析响应
+            const result = await response.json();
+            console.log(`【3D支付轮询】响应数据:`, JSON.stringify(result));
             
             // 处理查询结果
             if (result.success && result.data) {
+                console.log(`【3D支付轮询】支付状态: ${result.data.status}`);
+                
                 // 支付成功
                 if (result.data.status === 'PAID') {
-                    console.log('订单支付成功:', this.currentBillNo);
+                    console.log(`【3D支付成功】订单 ${this.currentBillNo} 支付成功`);
                     
                     // 停止轮询
                     this.stopPolling();
@@ -864,16 +903,17 @@ export class BuyViewCmpt extends BaseViewCmpt {
                     // 处理支付成功逻辑
                     const product = this.products[this.currentProductId];
                     if (product) {
+                        console.log(`【3D支付成功】处理商品 ${this.currentProductId}，商品信息:`, JSON.stringify(product));
                         this.handlePaymentSuccess(product, this.currentProductId);
-                        console.log('支付成功，已处理商品:', this.currentProductId);
+                        console.log(`【3D支付成功】商品处理完成: ${this.currentProductId}`);
                     } else {
-                        console.warn('支付成功，但无法确定购买的商品ID:', this.currentProductId);
+                        console.error(`【3D支付错误】支付成功，但无法找到商品 ID: ${this.currentProductId}`);
                         App.view.showMsgTips('支付成功，但商品信息有误');
                     }
                 }
                 // 支付失败
                 else if (result.data.status === 'FAILED') {
-                    console.log('订单支付失败:', this.currentBillNo);
+                    console.log(`【3D支付失败】订单 ${this.currentBillNo} 支付失败`);
                     
                     // 停止轮询
                     this.stopPolling();
@@ -886,12 +926,26 @@ export class BuyViewCmpt extends BaseViewCmpt {
                 }
                 // 处理中状态，继续轮询
                 else {
-                    console.log('订单处理中，继续轮询:', this.currentBillNo);
+                    console.log(`【3D支付轮询】订单 ${this.currentBillNo} 处理中，继续轮询`);
                 }
+            } else {
+                console.warn(`【3D支付轮询】未获取到有效支付状态，result.success: ${result.success}`);
             }
         } catch (error) {
-            console.error('查询支付结果失败:', error);
+            console.error(`【3D支付错误】查询支付结果失败:`, error);
+            
+            // 尝试打印更多错误信息
+            if (error instanceof Error) {
+                console.error(`【3D支付错误】错误名称: ${error.name}, 错误信息: ${error.message}, 错误堆栈: ${error.stack}`);
+            }
         }
+    }
+
+    // 添加一个直接测试查询的方法
+    public async testQueryPayment(billNo: string) {
+        console.log(`【3D支付测试】开始测试查询订单: ${billNo}`);
+        this.currentBillNo = billNo;
+        await this.queryPaymentResult();
     }
 
     // 在组件销毁时清理资源
@@ -901,5 +955,77 @@ export class BuyViewCmpt extends BaseViewCmpt {
         
         // 调用父类方法
         super.onDestroy && super.onDestroy();
+    }
+
+    // 添加一个手动查询按钮的方法
+    public addQueryButton() {
+        console.log(`【3D支付】添加手动查询按钮`);
+        
+        // 创建按钮节点
+        const queryBtn = new Node('QueryButton');
+        this.node.addChild(queryBtn);
+        
+        // 添加按钮组件
+        const btnComp = queryBtn.addComponent(Button);
+        
+        // 添加按钮文本
+        const btnLabel = new Node('Label');
+        queryBtn.addChild(btnLabel);
+        const labelComp = btnLabel.addComponent(Label);
+        labelComp.string = '查询最近支付';
+        labelComp.fontSize = 20;
+        labelComp.color = Color.BLACK;
+        
+        // 设置按钮位置
+        const btnWidget = queryBtn.addComponent(Widget);
+        btnWidget.isAlignTop = true;
+        btnWidget.isAlignRight = true;
+        btnWidget.top = 10;
+        btnWidget.right = 10;
+        
+        // 添加按钮点击事件
+        btnComp.node.on('click', () => {
+            console.log(`【3D支付测试】点击查询按钮，当前订单号: ${this.currentBillNo}`);
+            if (this.currentBillNo) {
+                this.testQueryPayment(this.currentBillNo);
+            } else {
+                App.view.showMsgTips('没有可查询的订单号');
+            }
+        }, this);
+        
+        console.log(`【3D支付】手动查询按钮已添加`);
+    }
+
+    // 这个方法可以在浏览器控制台中手动调用
+    public async manualTestQuery(billNo: string) {
+        console.log(`【手动测试】开始查询订单: ${billNo}`);
+        
+        try {
+            const queryUrl = `http://119.91.142.92:5000/api/payment/status/${billNo}`;
+            console.log(`【手动测试】查询URL: ${queryUrl}`);
+            
+            const response = await fetch(queryUrl);
+            console.log(`【手动测试】响应状态: ${response.status}`);
+            
+            const result = await response.json();
+            console.log(`【手动测试】响应数据:`, result);
+            
+            if (result.success && result.data && result.data.status === 'PAID') {
+                console.log(`【手动测试】订单支付成功`);
+                
+                // 如果需要，可以手动处理支付成功逻辑
+                if (this.currentProductId) {
+                    const product = this.products[this.currentProductId];
+                    if (product) {
+                        this.handlePaymentSuccess(product, this.currentProductId);
+                    }
+                }
+            }
+            
+            return result;
+        } catch (error) {
+            console.error(`【手动测试】查询失败:`, error);
+            return { success: false, error: error.message };
+        }
     }
 }
