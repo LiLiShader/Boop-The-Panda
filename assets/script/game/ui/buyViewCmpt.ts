@@ -145,7 +145,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
         this.loadTestModeState(); // 加载测试模式状态
         
         // 添加自动检查未完成支付的逻辑
-        this.checkUnfinishedPayments();
+        // this.checkUnfinishedPayments();
 
     }
     
