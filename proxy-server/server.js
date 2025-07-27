@@ -77,130 +77,61 @@ app.post('/api/pay', async (req, res) => {
 });
 
 // 3D支付回调处理
-app.get('/api/get3DResult', async (req, res) => {
-    console.log('收到3D支付回调:', req.query);
+app.get('/api/get3DResult', (req, res) => {
+  console.log('【代理服务器】收到3D回调请求，参数:', req.query);
+  const { amount, billNo, code, message } = req.query;
+  
+  if (!billNo) {
+    console.error('【代理服务器】错误：缺少billNo参数');
+    return res.status(400).send('缺少订单号');
+  }
+  
+  console.log(`【代理服务器】检查订单 ${billNo} 是否在缓存中`, !!paymentStatusCache[billNo]);
+  
+  if (paymentStatusCache[billNo]) {
+    const oldStatus = paymentStatusCache[billNo].status;
+    const newStatus = code === 'P0001' ? 'PAID' : 'FAILED';
+    paymentStatusCache[billNo].status = newStatus;
+    paymentStatusCache[billNo].callbackData = req.query;
+    paymentStatusCache[billNo].updatedAt = Date.now();
     
-    const { amount, billNo, code, message } = req.query;
-    
-    try {
-        // 更新支付状态缓存
-        if (billNo && paymentStatusCache[billNo]) {
-            paymentStatusCache[billNo].status = code === 'P0001' ? 'PAID' : 'FAILED';
-            paymentStatusCache[billNo].callbackData = req.query;
-            paymentStatusCache[billNo].updatedAt = Date.now();
-            
-            console.log(`更新3D支付状态，订单号: ${billNo}, 状态: ${paymentStatusCache[billNo].status}`);
-            
-            // 如果支付成功，记录支付信息到支付记录服务
-            if (code === 'P0001') {
-                try {
-                    // 从缓存中获取原始请求数据和商品信息
-                    const originalRequest = paymentStatusCache[billNo].requestData;
-                    const productInfo = originalRequest ? decodeURIComponent(originalRequest.productInfo || '') : '';
-                    
-                    // 构造支付记录数据
-                    const paymentRecord = {
-                        user_id: '', // 可能需要从原始请求中提取用户ID
-                        user_name: '',
-                        amount: parseFloat(amount || 0),
-                        order_no: billNo,
-                        pay_time: new Date().toISOString().replace('T', ' ').substring(0, 19),
-                        raw_response: req.query,
-                        product_info: productInfo,
-                        payment_type: '3D',
-                        status: 'PAID'
-                    };
-                    
-                    // 发送到支付记录服务
-                    await axios.post('http://119.91.142.92:3001/api/payments/record', paymentRecord);
-                    console.log('3D支付记录已发送到支付记录服务');
-                } catch (recordError) {
-                    console.error('记录3D支付信息失败:', recordError);
-                }
-            }
-        } else {
-            console.warn(`未找到订单号为 ${billNo} 的支付状态缓存`);
-        }
-        
-        // 返回简单的成功页面
-        res.send(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>支付结果</title>
-                <meta name="viewport" content="width=device-width, initial-scale=1">
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        text-align: center;
-                        margin: 50px;
-                    }
-                    .success {
-                        color: green;
-                        font-size: 24px;
-                    }
-                    .failed {
-                        color: red;
-                        font-size: 24px;
-                    }
-                    .message {
-                        margin: 20px 0;
-                    }
-                    .button {
-                        background-color: #4CAF50;
-                        border: none;
-                        color: white;
-                        padding: 10px 20px;
-                        text-align: center;
-                        text-decoration: none;
-                        display: inline-block;
-                        font-size: 16px;
-                        margin: 4px 2px;
-                        cursor: pointer;
-                        border-radius: 5px;
-                    }
-                </style>
-            </head>
-            <body>
-                <h1 class="${code === 'P0001' ? 'success' : 'failed'}">
-                    ${code === 'P0001' ? '支付成功' : '支付失败'}
-                </h1>
-                <div class="message">
-                    订单号: ${billNo}<br>
-                    ${amount ? `金额: ${amount}<br>` : ''}
-                    ${message ? `消息: ${message}<br>` : ''}
-                </div>
-                <p>请关闭此窗口并返回游戏继续。</p>
-                <button class="button" onclick="window.close()">关闭窗口</button>
-                <script>
-                    // 5秒后尝试自动关闭窗口
-                    setTimeout(() => {
-                        try {
-                            window.close();
-                        } catch (e) {
-                            console.log('无法自动关闭窗口');
-                        }
-                    }, 5000);
-                </script>
-            </body>
-            </html>
-        `);
-    } catch (error) {
-        console.error('处理3D支付回调失败:', error);
-        res.status(500).send('处理支付回调时出错');
-    }
+    console.log(`【代理服务器】更新订单 ${billNo} 状态: ${oldStatus} -> ${newStatus}`);
+    console.log(`【代理服务器】当前缓存内容:`, paymentStatusCache[billNo]);
+  } else {
+    console.warn(`【代理服务器】警告：找不到订单 ${billNo} 的缓存记录，新建记录`);
+    // 如果缓存中没有，创建一个新记录
+    paymentStatusCache[billNo] = {
+      status: code === 'P0001' ? 'PAID' : 'FAILED',
+      callbackData: req.query,
+      timestamp: Date.now(),
+      updatedAt: Date.now()
+    };
+    console.log(`【代理服务器】新建缓存记录:`, paymentStatusCache[billNo]);
+  }
+  
+  // 定期打印缓存状态
+  console.log('【代理服务器】当前所有订单状态:', Object.keys(paymentStatusCache).map(key => ({
+    billNo: key,
+    status: paymentStatusCache[key].status
+  })));
+  
+  res.send('OK');
 });
 
 // 查询支付状态API
 app.get('/api/payment/status/:billNo', (req, res) => {
     const { billNo } = req.params;
     
+    console.log(`收到订单查询请求: ${billNo}`);
+    
     if (!billNo) {
+        console.log('订单号为空，返回错误');
         return res.status(400).json({ success: false, message: '订单号不能为空' });
     }
     
     const paymentStatus = paymentStatusCache[billNo];
     if (paymentStatus) {
+        console.log(`找到订单 ${billNo} 的状态:`, paymentStatus);
         res.json({
             success: true,
             data: {
@@ -210,6 +141,7 @@ app.get('/api/payment/status/:billNo', (req, res) => {
             }
         });
     } else {
+        console.log(`未找到订单 ${billNo} 的状态`);
         res.json({
             success: false,
             message: '未找到该订单的支付状态'

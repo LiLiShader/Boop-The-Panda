@@ -143,6 +143,10 @@ export class BuyViewCmpt extends BaseViewCmpt {
         // 添加测试3D支付的按钮点击事件
         this.initTest3DButton();
         this.loadTestModeState(); // 加载测试模式状态
+        
+        // 添加自动检查未完成支付的逻辑
+        this.checkUnfinishedPayments();
+
     }
     
     // 初始化3D支付相关UI
@@ -279,35 +283,18 @@ export class BuyViewCmpt extends BaseViewCmpt {
         console.log(`【3D支付】显示3D验证对话框，验证URL: ${url}`);
         this.auth3DDialog.active = true;
         
-        // 从URL中提取订单号
-        let billNo = '';
-        try {
-            console.log(`【3D支付】开始从URL中提取订单号`);
-            // 尝试使用URL对象解析
-            const urlObj = new URL(url);
-            billNo = urlObj.searchParams.get('billNo') || '';
-            console.log(`【3D支付】使用URL对象提取订单号: ${billNo}`);
-        } catch (e) {
-            console.warn(`【3D支付】URL对象解析失败，使用正则表达式提取`);
-            // 如果URL解析失败，使用正则表达式
-            const billNoMatch = url.match(/billNo=([^&]+)/);
-            billNo = billNoMatch ? billNoMatch[1] : '';
-            console.log(`【3D支付】使用正则表达式提取订单号: ${billNo}`);
-        }
-        
-        // 保存订单号用于后续查询
-        if (billNo) {
-            console.log(`【3D支付】成功提取到订单号: ${billNo}`);
-            this.currentBillNo = billNo;
+        // 检查是否已经有订单号
+        if (this.currentBillNo) {
+            console.log(`【3D支付】使用已设置的订单号: ${this.currentBillNo}`);
             
             // 开始轮询查询支付结果
             console.log(`【3D支付】准备开始轮询查询支付结果`);
             this.startPollingPaymentResult();
         } else {
-            console.error(`【3D支付错误】未能从URL中提取订单号: ${url}`);
+            console.error(`【3D支付错误】没有订单号，无法开始轮询`);
         }
         
-        // 打开验证页面 - 使用当前配置的实现方式
+        // 打开验证页面
         console.log(`【3D支付】打开3D验证页面: ${url}`);
         window.open(url, '_blank');
     }
@@ -597,7 +584,17 @@ export class BuyViewCmpt extends BaseViewCmpt {
             } else if (result.code === 'P0004' && result.auth3DUrl) {
                 // 3D支付，需要跳转验证
                 console.log('需要3D验证，验证URL:', result.auth3DUrl);
+                console.log('支付响应数据:', result.data);
                 App.view.showMsgTips("Redirecting to 3D secure verification...");
+                
+                // 从支付响应中获取订单号
+                const billNo = result.data?.billNo || result.data?.orderNo || '';
+                if (billNo) {
+                    console.log(`【3D支付】从支付响应获取订单号: ${billNo}`);
+                    this.currentBillNo = billNo;
+                    localStorage.setItem('lastBillNo', billNo);
+                    localStorage.setItem('lastProductId', this.currentProductId);
+                }
                 
                 // 显示3D验证对话框
                 this.showAuth3DDialog(result.auth3DUrl);
@@ -809,8 +806,8 @@ export class BuyViewCmpt extends BaseViewCmpt {
     private currentBillNo: string = ''; // 当前订单号
     private pollingTimer: any = null;   // 轮询计时器
     private pollingAttempts: number = 0; // 轮询尝试次数
-    private readonly MAX_POLLING_ATTEMPTS = 30; // 最大轮询次数
-    private readonly POLLING_INTERVAL = 3000;   // 轮询间隔(毫秒)
+    private readonly MAX_POLLING_ATTEMPTS = 60; // 增加到60次
+    private readonly POLLING_INTERVAL = 3000;   // 3秒一次
 
     // 添加开始轮询方法
     private startPollingPaymentResult() {
@@ -945,7 +942,59 @@ export class BuyViewCmpt extends BaseViewCmpt {
     public async testQueryPayment(billNo: string) {
         console.log(`【3D支付测试】开始测试查询订单: ${billNo}`);
         this.currentBillNo = billNo;
-        await this.queryPaymentResult();
+        
+        try {
+            const queryUrl = `http://119.91.142.92:5000/api/payment/status/${billNo}`;
+            console.log(`【3D支付测试】查询URL: ${queryUrl}`);
+            
+            const response = await fetch(queryUrl);
+            console.log(`【3D支付测试】响应状态: ${response.status}`);
+            
+            const result = await response.json();
+            console.log(`【3D支付测试】响应数据:`, JSON.stringify(result));
+            
+            if (result.success && result.data) {
+                console.log(`【3D支付测试】支付状态: ${result.data.status}`);
+                
+                if (result.data.status === 'PAID') {
+                    console.log(`【3D支付测试】订单支付成功，准备处理商品`);
+                    
+                    // 停止轮询
+                    this.stopPolling();
+                    
+                    // 关闭3D验证对话框
+                    this.closeAuth3DDialog();
+                    
+                    // 处理支付成功逻辑
+                    if (this.currentProductId) {
+                        const product = this.products[this.currentProductId];
+                        if (product) {
+                            console.log(`【3D支付测试】处理商品 ${this.currentProductId}`);
+                            this.handlePaymentSuccess(product, this.currentProductId);
+                        } else {
+                            console.error(`【3D支付测试】无法找到商品: ${this.currentProductId}`);
+                        }
+                    } else {
+                        console.warn(`【3D支付测试】没有当前商品ID，尝试使用默认商品`);
+                        // 尝试使用第一个商品作为默认
+                        const firstProductId = Object.keys(this.products)[0];
+                        if (firstProductId) {
+                            const product = this.products[firstProductId];
+                            this.handlePaymentSuccess(product, firstProductId);
+                        }
+                    }
+                } else if (result.data.status === 'FAILED') {
+                    console.log(`【3D支付测试】订单支付失败`);
+                    App.view.showMsgTips('支付失败，请重试');
+                } else {
+                    console.log(`【3D支付测试】订单处理中: ${result.data.status}`);
+                }
+            } else {
+                console.warn(`【3D支付测试】查询失败: ${result.message || '未知错误'}`);
+            }
+        } catch (error) {
+            console.error(`【3D支付测试】查询异常:`, error);
+        }
     }
 
     // 在组件销毁时清理资源
@@ -957,43 +1006,21 @@ export class BuyViewCmpt extends BaseViewCmpt {
         super.onDestroy && super.onDestroy();
     }
 
-    // 添加一个手动查询按钮的方法
+    // 添加一个手动查询按钮的点击事件处理函数
     public addQueryButton() {
-        console.log(`【3D支付】添加手动查询按钮`);
-        
-        // 创建按钮节点
-        const queryBtn = new Node('QueryButton');
-        this.node.addChild(queryBtn);
-        
-        // 添加按钮组件
-        const btnComp = queryBtn.addComponent(Button);
-        
-        // 添加按钮文本
-        const btnLabel = new Node('Label');
-        queryBtn.addChild(btnLabel);
-        const labelComp = btnLabel.addComponent(Label);
-        labelComp.string = '查询最近支付';
-        labelComp.fontSize = 20;
-        labelComp.color = Color.BLACK;
-        
-        // 设置按钮位置
-        const btnWidget = queryBtn.addComponent(Widget);
-        btnWidget.isAlignTop = true;
-        btnWidget.isAlignRight = true;
-        btnWidget.top = 10;
-        btnWidget.right = 10;
-        
-        // 添加按钮点击事件
-        btnComp.node.on('click', () => {
-            console.log(`【3D支付测试】点击查询按钮，当前订单号: ${this.currentBillNo}`);
-            if (this.currentBillNo) {
-                this.testQueryPayment(this.currentBillNo);
+        console.log(`【3D支付】点击查询按钮，当前订单号: ${this.currentBillNo}`);
+        if (this.currentBillNo) {
+            this.testQueryPayment(this.currentBillNo);
+        } else {
+            // 尝试从本地存储获取最近的订单号
+            const lastBillNo = localStorage.getItem('lastBillNo');
+            if (lastBillNo) {
+                console.log(`【3D支付测试】从本地存储获取订单号: ${lastBillNo}`);
+                this.testQueryPayment(lastBillNo);
             } else {
                 App.view.showMsgTips('没有可查询的订单号');
             }
-        }, this);
-        
-        console.log(`【3D支付】手动查询按钮已添加`);
+        }
     }
 
     // 这个方法可以在浏览器控制台中手动调用
@@ -1027,5 +1054,85 @@ export class BuyViewCmpt extends BaseViewCmpt {
             console.error(`【手动测试】查询失败:`, error);
             return { success: false, error: error.message };
         }
+    }
+    
+    // 手动设置订单号的方法（可在控制台调用）
+    public setCurrentBillNo(billNo: string) {
+        console.log(`【手动设置】设置当前订单号: ${billNo}`);
+        this.currentBillNo = billNo;
+        localStorage.setItem('lastBillNo', billNo);
+        console.log(`【手动设置】订单号已保存到本地存储`);
+    }
+    
+    // 获取当前订单号的方法（可在控制台调用）
+    public getCurrentBillNo(): string {
+        console.log(`【获取订单号】当前订单号: ${this.currentBillNo}`);
+        const lastBillNo = localStorage.getItem('lastBillNo');
+        console.log(`【获取订单号】本地存储订单号: ${lastBillNo}`);
+        return this.currentBillNo || lastBillNo || '';
+    }
+    
+    // 自动检查未完成的支付
+    private async checkUnfinishedPayments() {
+        console.log(`【自动检查】开始检查未完成的支付`);
+        
+        // 从本地存储获取最近的订单号
+        const lastBillNo = localStorage.getItem('lastBillNo');
+        if (!lastBillNo) {
+            console.log(`【自动检查】没有找到本地存储的订单号`);
+            return;
+        }
+        
+        console.log(`【自动检查】检查订单: ${lastBillNo}`);
+        
+        try {
+            const queryUrl = `http://119.91.142.92:5000/api/payment/status/${lastBillNo}`;
+            console.log(`【自动检查】查询URL: ${queryUrl}`);
+            
+            const response = await fetch(queryUrl);
+            const result = await response.json();
+            console.log(`【自动检查】查询结果:`, JSON.stringify(result));
+            
+            if (result.success && result.data && result.data.status === 'PAID') {
+                console.log(`【自动检查】发现支付成功的订单: ${lastBillNo}`);
+                
+                // 设置当前订单号
+                this.currentBillNo = lastBillNo;
+                
+                // 尝试处理支付成功逻辑
+                this.handleUnfinishedPaymentSuccess(lastBillNo);
+            } else {
+                console.log(`【自动检查】订单 ${lastBillNo} 状态: ${result.data?.status || '未知'}`);
+            }
+        } catch (error) {
+            console.error(`【自动检查】查询失败:`, error);
+        }
+    }
+    
+    // 处理未完成的支付成功
+    private handleUnfinishedPaymentSuccess(billNo: string) {
+        console.log(`【自动处理】处理未完成的支付成功: ${billNo}`);
+        
+        // 尝试从本地存储获取商品信息
+        const lastProductId = localStorage.getItem('lastProductId');
+        if (lastProductId && this.products[lastProductId]) {
+            console.log(`【自动处理】使用本地存储的商品ID: ${lastProductId}`);
+            this.currentProductId = lastProductId;
+            this.handlePaymentSuccess(this.products[lastProductId], lastProductId);
+        } else {
+            console.log(`【自动处理】没有找到商品信息，使用默认商品`);
+            // 使用第一个商品作为默认
+            const firstProductId = Object.keys(this.products)[0];
+            if (firstProductId) {
+                this.currentProductId = firstProductId;
+                this.handlePaymentSuccess(this.products[firstProductId], firstProductId);
+            }
+        }
+        
+        // 清除本地存储的订单号，避免重复处理
+        localStorage.removeItem('lastBillNo');
+        localStorage.removeItem('lastProductId');
+        
+        console.log(`【自动处理】支付成功处理完成`);
     }
 }
