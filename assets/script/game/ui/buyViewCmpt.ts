@@ -614,52 +614,52 @@ export class BuyViewCmpt extends BaseViewCmpt {
     
     // 处理支付成功逻辑
     private handlePaymentSuccess(product: ProductConfig, btnName: string) {
-        // 发放钻石
-        if (product.diamonds) {
-            GlobalFuncHelper.setGold(product.diamonds);
-            App.event.emit(EventName.Game.UpdataGold);
-        }
-        
-        // 发放道具
-        let rewardText = [];
-        if (product.diamonds) {
-            rewardText.push(`${product.diamonds} Diamonds`);
-        }
-        
-        // 发放炸弹道具
-        if (product.bombBomb) {
-            const currentBombBomb = StorageHelper.getData(StorageHelperKey.BombBomb, 0);
-            StorageHelper.setData(StorageHelperKey.BombBomb, currentBombBomb + product.bombBomb);
-            rewardText.push(`${product.bombBomb} Bomb Blast`);
-        }
-        
-        if (product.bombHor) {
-            const currentBombHor = StorageHelper.getData(StorageHelperKey.BombHor, 0);
-            StorageHelper.setData(StorageHelperKey.BombHor, currentBombHor + product.bombHor);
-            rewardText.push(`${product.bombHor} Horizontal Bomb`);
-        }
-        
-        if (product.bombVer) {
-            const currentBombVer = StorageHelper.getData(StorageHelperKey.BombVer, 0);
-            StorageHelper.setData(StorageHelperKey.BombVer, currentBombVer + product.bombVer);
-            rewardText.push(`${product.bombVer} Vertical Bomb`);
-        }
-        
-        if (product.bombAllSame) {
-            const currentBombAllSame = StorageHelper.getData(StorageHelperKey.BombAllSame, 0);
-            StorageHelper.setData(StorageHelperKey.BombAllSame, currentBombAllSame + product.bombAllSame);
-            rewardText.push(`${product.bombAllSame} Color Bomb`);
-        }
-        
-        // 如果是首充礼包，标记对应礼包已购买
-        if (product.isFirstCharge) {
-            const itemNumber = parseInt(btnName.replace('itemBtn', ''));
-            const storageKey = StorageHelperKey[`FirstChargeItem${itemNumber}`];
-            StorageHelper.setBooleanData(storageKey, true);
-            this.updateItemStatus();
-        }
-        
-        App.view.showMsgTips(`Purchase successful!`);
+                // 发放钻石
+                if (product.diamonds) {
+                    GlobalFuncHelper.setGold(product.diamonds);
+                    App.event.emit(EventName.Game.UpdataGold);
+                }
+                
+                // 发放道具
+                let rewardText = [];
+                if (product.diamonds) {
+                    rewardText.push(`${product.diamonds} Diamonds`);
+                }
+                
+                // 发放炸弹道具
+                if (product.bombBomb) {
+                    const currentBombBomb = StorageHelper.getData(StorageHelperKey.BombBomb, 0);
+                    StorageHelper.setData(StorageHelperKey.BombBomb, currentBombBomb + product.bombBomb);
+                    rewardText.push(`${product.bombBomb} Bomb Blast`);
+                }
+                
+                if (product.bombHor) {
+                    const currentBombHor = StorageHelper.getData(StorageHelperKey.BombHor, 0);
+                    StorageHelper.setData(StorageHelperKey.BombHor, currentBombHor + product.bombHor);
+                    rewardText.push(`${product.bombHor} Horizontal Bomb`);
+                }
+                
+                if (product.bombVer) {
+                    const currentBombVer = StorageHelper.getData(StorageHelperKey.BombVer, 0);
+                    StorageHelper.setData(StorageHelperKey.BombVer, currentBombVer + product.bombVer);
+                    rewardText.push(`${product.bombVer} Vertical Bomb`);
+                }
+                
+                if (product.bombAllSame) {
+                    const currentBombAllSame = StorageHelper.getData(StorageHelperKey.BombAllSame, 0);
+                    StorageHelper.setData(StorageHelperKey.BombAllSame, currentBombAllSame + product.bombAllSame);
+                    rewardText.push(`${product.bombAllSame} Color Bomb`);
+                }
+                
+                // 如果是首充礼包，标记对应礼包已购买
+                if (product.isFirstCharge) {
+                    const itemNumber = parseInt(btnName.replace('itemBtn', ''));
+                    const storageKey = StorageHelperKey[`FirstChargeItem${itemNumber}`];
+                    StorageHelper.setBooleanData(storageKey, true);
+                    this.updateItemStatus();
+                }
+                
+                App.view.showMsgTips(`Purchase successful!`);
     }
     
     // 轮询检查3D支付结果
@@ -684,7 +684,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
                         }
                         return true;
                     } 
-                    // 支付失败
+                // 支付失败
                     else if (result.data.status === 'FAILED') {
                         console.log('3D支付失败:', result.data);
                         this.closeAuth3DDialog();
@@ -704,7 +704,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
                 setTimeout(checkResult, interval);
                 return false;
                 
-            } catch (error) {
+        } catch (error) {
                 console.error('查询3D支付结果失败:', error);
                 attempts++;
                 if (attempts >= maxAttempts) {
