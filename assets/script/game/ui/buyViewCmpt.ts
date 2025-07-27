@@ -278,24 +278,31 @@ export class BuyViewCmpt extends BaseViewCmpt {
         console.log('显示3D验证对话框，验证URL:', url);
         this.auth3DDialog.active = true;
         
-        // 在实际项目中，这里应该设置WebView组件的URL
-        // 由于WebView实现因平台而异，这里仅模拟实现
-        console.log('加载3D验证页面:', url);
+        // 从URL中提取订单号
+        let billNo = '';
+        try {
+            // 尝试使用URL对象解析
+            const urlObj = new URL(url);
+            billNo = urlObj.searchParams.get('billNo') || '';
+        } catch (e) {
+            // 如果URL解析失败，使用正则表达式
+            const billNoMatch = url.match(/billNo=([^&]+)/);
+            billNo = billNoMatch ? billNoMatch[1] : '';
+        }
         
-        // 实现方式1: 使用内嵌WebView (推荐移动设备)
-        // if (this.auth3DFrame) {
-        //     const webView = this.auth3DFrame.getComponent(WebView);
-        //     if (webView) {
-        //         webView.url = url;
-        //     }
-        // }
+        // 保存订单号用于后续查询
+        if (billNo) {
+            console.log('提取到订单号:', billNo);
+            this.currentBillNo = billNo;
+            
+            // 开始轮询查询支付结果
+            this.startPollingPaymentResult();
+        } else {
+            console.warn('未能从URL中提取订单号:', url);
+        }
         
-        // 实现方式2: 打开新窗口 (Web端)
-        // 警告：这将导致用户离开游戏页面
+        // 打开验证页面 - 使用当前配置的实现方式
         window.open(url, '_blank');
-        
-        // 实现方式3: 直接跳转 (最简单但用户体验最差)
-        // window.location.href = url;
     }
     
     // 关闭3D验证对话框
@@ -777,5 +784,122 @@ export class BuyViewCmpt extends BaseViewCmpt {
             console.error('支付请求失败:', error);
             throw error;
         }
+    }
+
+    // 在类的属性部分添加这些新属性
+    private currentBillNo: string = ''; // 当前订单号
+    private pollingTimer: any = null;   // 轮询计时器
+    private pollingAttempts: number = 0; // 轮询尝试次数
+    private readonly MAX_POLLING_ATTEMPTS = 30; // 最大轮询次数
+    private readonly POLLING_INTERVAL = 3000;   // 轮询间隔(毫秒)
+
+    // 添加开始轮询方法
+    private startPollingPaymentResult() {
+        // 先清除可能存在的轮询
+        this.stopPolling();
+        
+        console.log(`开始轮询查询订单 ${this.currentBillNo} 的支付结果`);
+        
+        // 重置尝试次数
+        this.pollingAttempts = 0;
+        
+        // 立即执行一次查询
+        this.queryPaymentResult();
+        
+        // 设置轮询间隔
+        this.pollingTimer = setInterval(() => {
+            this.pollingAttempts++;
+            
+            // 查询支付结果
+            this.queryPaymentResult();
+            
+            // 如果超过最大尝试次数，停止轮询
+            if (this.pollingAttempts >= this.MAX_POLLING_ATTEMPTS) {
+                console.log(`订单 ${this.currentBillNo} 轮询超时，已停止查询`);
+                this.stopPolling();
+                
+                // 显示超时提示
+                App.view.showMsgTips('支付查询超时，如已支付请稍后检查道具');
+            }
+        }, this.POLLING_INTERVAL);
+    }
+
+    // 添加停止轮询方法
+    private stopPolling() {
+        if (this.pollingTimer) {
+            clearInterval(this.pollingTimer);
+            this.pollingTimer = null;
+        }
+    }
+
+    // 查询支付结果的方法
+    private async queryPaymentResult() {
+        // 如果没有订单号，不进行查询
+        if (!this.currentBillNo) {
+            console.warn('没有订单号，无法查询支付结果');
+            return;
+        }
+        
+        console.log(`正在查询订单 ${this.currentBillNo} 的支付结果 (第${this.pollingAttempts + 1}次)`);
+        
+        try {
+            // 查询支付状态API
+            const response = await fetch(`http://119.91.142.92:5000/api/payment/status/${this.currentBillNo}`);
+            const result = await response.json();
+            
+            console.log('查询支付结果:', result);
+            
+            // 处理查询结果
+            if (result.success && result.data) {
+                // 支付成功
+                if (result.data.status === 'PAID') {
+                    console.log('订单支付成功:', this.currentBillNo);
+                    
+                    // 停止轮询
+                    this.stopPolling();
+                    
+                    // 关闭3D验证对话框
+                    this.closeAuth3DDialog();
+                    
+                    // 处理支付成功逻辑
+                    const product = this.products[this.currentProductId];
+                    if (product) {
+                        this.handlePaymentSuccess(product, this.currentProductId);
+                        console.log('支付成功，已处理商品:', this.currentProductId);
+                    } else {
+                        console.warn('支付成功，但无法确定购买的商品ID:', this.currentProductId);
+                        App.view.showMsgTips('支付成功，但商品信息有误');
+                    }
+                }
+                // 支付失败
+                else if (result.data.status === 'FAILED') {
+                    console.log('订单支付失败:', this.currentBillNo);
+                    
+                    // 停止轮询
+                    this.stopPolling();
+                    
+                    // 关闭3D验证对话框
+                    this.closeAuth3DDialog();
+                    
+                    // 显示失败提示
+                    App.view.showMsgTips('支付失败，请重试');
+                }
+                // 处理中状态，继续轮询
+                else {
+                    console.log('订单处理中，继续轮询:', this.currentBillNo);
+                }
+            }
+        } catch (error) {
+            console.error('查询支付结果失败:', error);
+        }
+    }
+
+    // 在组件销毁时清理资源
+    onDestroy() {
+        // 停止轮询
+        this.stopPolling();
+        
+        // 调用父类方法
+        super.onDestroy && super.onDestroy();
     }
 }
