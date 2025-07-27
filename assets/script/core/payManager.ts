@@ -343,7 +343,7 @@ export class PayManager {
             user_id: user.pid || '',
             user_name: user.name || '',
             amount: parseFloat(response.amount || response.data?.amount || 0),
-            order_no: response.orderNo || response.data?.orderNo || '',
+            order_no: response.billNo || requestData.billNo || '',
             pay_time: new Date().toISOString().replace('T', ' ').substring(0, 19),
             raw_response: response,
             product_id: productId,

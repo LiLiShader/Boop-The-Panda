@@ -6,7 +6,7 @@ let currentOrders = []; // 存储当前查询到的订单列表
 
 // DOM元素
 const userIdInput = document.getElementById('user-id');
-const orderNoInput = document.getElementById('order-no');
+const billNoInput = document.getElementById('order-no');
 const startTimeInput = document.getElementById('start-time');
 const endTimeInput = document.getElementById('end-time');
 const queryUserBtn = document.getElementById('query-user-btn');
@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    orderNoInput.addEventListener('keypress', (e) => {
+    billNoInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             onQueryOrder();
         }
@@ -110,9 +110,9 @@ async function onQueryUser() {
 
 // 按订单号查询
 async function onQueryOrder() {
-    const orderNo = orderNoInput.value.trim();
+    const billNo = billNoInput.value.trim();
     
-    if (!orderNo) {
+    if (!billNo) {
         showMessage(ordersList, '请输入有效的订单号');
         return;
     }
@@ -124,13 +124,13 @@ async function onQueryOrder() {
         // 获取所有订单
         const allOrders = await fetchAllOrders();
         
-        // 过滤出匹配的订单
-        const matchedOrders = allOrders.filter(order => 
-            order.order_no && order.order_no.includes(orderNo)
+        // 过滤订单
+        const filteredOrders = allOrders.filter(order => 
+            order.order_no && order.order_no.includes(billNo)
         );
         
         // 更新订单列表
-        updateOrdersList(matchedOrders);
+        updateOrdersList(filteredOrders);
         
         // 清空用户信息区域
         showMessage(userInfoDisplay, '按订单号查询无需用户信息');
@@ -206,18 +206,18 @@ function onExportExcel() {
     }
     
     try {
-        // 准备数据
-        const exportData = currentOrders.map(order => ({
+        // 准备Excel数据
+        const excelData = currentOrders.map(order => ({
             '用户ID': order.user_id || '',
             '用户名': order.user_name || '',
             '订单号': order.order_no || '',
-            '金额': order.amount || 0,
+            '金额': order.amount || '',
             '支付时间': order.pay_time || '',
-            '订单内容': getOrderItemName(order)
+            '商品': getOrderItemName(order) || '未知商品'
         }));
         
         // 创建工作表
-        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
         
         // 创建工作簿
         const workbook = XLSX.utils.book_new();
@@ -394,7 +394,7 @@ function updateOrdersList(orders) {
         orderElement.className = 'order-item';
         orderElement.innerHTML = `
             <p><strong>UserID:</strong> ${order.user_id || '未知'} <strong>Name:</strong> ${order.user_name || '未知'}</p>
-            <p><strong>Order No:</strong> ${order.order_no || '未知'} <strong>Amount:</strong> ${order.amount || 0} <strong>Pay Time:</strong> ${order.pay_time || '未知'}</p>
+            <p><strong>Bill No:</strong> ${order.order_no || '未知'} <strong>Amount:</strong> ${order.amount || 0} <strong>Pay Time:</strong> ${order.pay_time || '未知'}</p>
             <p><strong>Product:</strong> ${productName}</p>
         `;
         
