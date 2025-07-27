@@ -13,6 +13,10 @@ import { ToolsHelper } from '../../utils/toolsHelper';
 import { WxManager } from '../../wx/wxManager';
 const { ccclass, property } = _decorator;
 
+// 添加3D支付相关处理对话框节点
+const PROCESSING_DIALOG_NAME = 'ProcessingDialog';
+const AUTH3D_DIALOG_NAME = 'Auth3DDialog';
+
 interface ProductConfig {
     amount: string;      // 支付金额（美元）
     diamonds?: number;    // 钻石数量
@@ -27,6 +31,13 @@ interface ProductConfig {
 export class BuyViewCmpt extends BaseViewCmpt {
     private lbGold: Node = null;
     private content: Node = null;
+    
+    // 3D支付相关属性
+    private processingDialog: Node = null;
+    private auth3DDialog: Node = null;
+    private auth3DFrame: Node = null;
+    private currentProductId: string = '';
+    private enable3DTest: boolean = false;
 
     // 新增：支付表单数据
     private paymentFormData = {
@@ -118,10 +129,135 @@ export class BuyViewCmpt extends BaseViewCmpt {
         App.event.on(EventName.Game.UpdataGold, this.evtUpdateGold, this);
         this.evtUpdateGold();
         this.updateItemStatus();
+        
         // 新增：初始化表单节点引用
         this.initPaymentFormNodes();
         // 新增：加载本地持久化数据并回显
         this.loadPaymentFormData();
+        
+        // 初始化3D支付相关UI
+        this.init3DPaymentUI();
+        
+        // 添加测试3D支付的按钮点击事件
+        this.initTest3DButton();
+    }
+    
+    // 初始化3D支付相关UI
+    private init3DPaymentUI() {
+        // 获取处理中对话框
+        this.processingDialog = find('ProcessingDialog', this.node);
+        if (!this.processingDialog) {
+            console.warn('未找到处理中对话框节点，将创建');
+            this.createProcessingDialog();
+        }
+        
+        // 获取3D验证对话框
+        this.auth3DDialog = find('Auth3DDialog', this.node);
+        if (!this.auth3DDialog) {
+            console.warn('未找到3D验证对话框节点，将创建');
+            this.createAuth3DDialog();
+        }
+        
+        // 初始默认隐藏
+        if (this.processingDialog) this.processingDialog.active = false;
+        if (this.auth3DDialog) this.auth3DDialog.active = false;
+    }
+    
+    // 创建处理中对话框
+    private createProcessingDialog() {
+        // 这里仅为示意，实际项目中应该使用prefab实例化
+        this.processingDialog = new Node(PROCESSING_DIALOG_NAME);
+        this.node.addChild(this.processingDialog);
+        this.processingDialog.active = false;
+    }
+    
+    // 创建3D验证对话框
+    private createAuth3DDialog() {
+        // 这里仅为示意，实际项目中应该使用prefab实例化
+        this.auth3DDialog = new Node(AUTH3D_DIALOG_NAME);
+        this.node.addChild(this.auth3DDialog);
+        
+        // 创建iframe容器节点
+        this.auth3DFrame = new Node('IFrame');
+        this.auth3DDialog.addChild(this.auth3DFrame);
+        
+        // 添加关闭按钮
+        const closeBtn = new Node('CloseButton');
+        this.auth3DDialog.addChild(closeBtn);
+        
+        // 添加按钮点击事件
+        const button = closeBtn.addComponent(Button);
+        button.node.on('click', this.closeAuth3DDialog, this);
+        
+        this.auth3DDialog.active = false;
+    }
+    
+    // 初始化3D支付测试按钮
+    private initTest3DButton() {
+        const testBtn = find('PaymentForm/test3DButton', this.node);
+        if (testBtn) {
+            const button = testBtn.getComponent(Button);
+            if (button) {
+                button.node.on('click', this.toggleTest3DMode, this);
+            }
+        }
+    }
+    
+    // 切换3D支付测试模式
+    private toggleTest3DMode() {
+        this.enable3DTest = !this.enable3DTest;
+        const payManager = PayManager.getInstance();
+        payManager.setTest3DMode(this.enable3DTest);
+        
+        App.view.showMsgTips(`3D支付测试模式: ${this.enable3DTest ? '开启' : '关闭'}`);
+    }
+    
+    // 显示处理中对话框
+    private showProcessingDialog() {
+        if (this.processingDialog) {
+            this.processingDialog.active = true;
+        }
+    }
+    
+    // 隐藏处理中对话框
+    private hideProcessingDialog() {
+        if (this.processingDialog) {
+            this.processingDialog.active = false;
+        }
+    }
+    
+    // 显示3D验证对话框并加载验证URL
+    private showAuth3DDialog(url: string) {
+        if (!this.auth3DDialog) return;
+        
+        console.log('显示3D验证对话框，验证URL:', url);
+        this.auth3DDialog.active = true;
+        
+        // 在实际项目中，这里应该设置WebView组件的URL
+        // 由于WebView实现因平台而异，这里仅模拟实现
+        console.log('加载3D验证页面:', url);
+        
+        // 实现方式1: 使用内嵌WebView (推荐移动设备)
+        // if (this.auth3DFrame) {
+        //     const webView = this.auth3DFrame.getComponent(WebView);
+        //     if (webView) {
+        //         webView.url = url;
+        //     }
+        // }
+        
+        // 实现方式2: 打开新窗口 (Web端)
+        // 警告：这将导致用户离开游戏页面
+        window.open(url, '_blank');
+        
+        // 实现方式3: 直接跳转 (最简单但用户体验最差)
+        // window.location.href = url;
+    }
+    
+    // 关闭3D验证对话框
+    private closeAuth3DDialog() {
+        if (this.auth3DDialog) {
+            this.auth3DDialog.active = false;
+        }
     }
 
     // 新增：加载本地持久化数据并回显到表单
@@ -366,6 +502,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
         }
         App.audio.play('button_click');
         const btnName = btn.name;
+        this.currentProductId = btnName;
         const product = this.products[btnName];
         
         if (!product) {
@@ -385,65 +522,39 @@ export class BuyViewCmpt extends BaseViewCmpt {
         }
 
         try {
+            // 显示处理中对话框
+            this.showProcessingDialog();
+            
             // 发起支付
             const result = await this.requestPayment(product.amount, `钻石礼包-${product.diamonds}钻石`);
             
+            // 隐藏处理中对话框
+            this.hideProcessingDialog();
+            
             if (result.code === 'P0001') {
-                // 支付成功
-                console.log('支付成功');
+                // 2D支付成功
+                console.log('2D支付成功');
+                this.handlePaymentSuccess(product, btnName);
+            } else if (result.code === 'P0004' && result.auth3DUrl) {
+                // 3D支付，需要跳转验证
+                console.log('需要3D验证，验证URL:', result.auth3DUrl);
+                App.view.showMsgTips("Redirecting to 3D secure verification...");
                 
-                // 发放钻石
-                if (product.diamonds) {
-                    GlobalFuncHelper.setGold(product.diamonds);
-                    App.event.emit(EventName.Game.UpdataGold);
-                }
+                // 显示3D验证对话框
+                this.showAuth3DDialog(result.auth3DUrl);
                 
-                // 发放道具
-                let rewardText = [];
-                if (product.diamonds) {
-                    rewardText.push(`${product.diamonds} Diamonds`);
-                }
+                // 验证完成后，结果会通过returnURL回调到后端
+                // 后端会记录支付结果，前端可以通过轮询或推送获取最终结果
                 
-                // 发放炸弹道具
-                if (product.bombBomb) {
-                    const currentBombBomb = StorageHelper.getData(StorageHelperKey.BombBomb, 0);
-                    StorageHelper.setData(StorageHelperKey.BombBomb, currentBombBomb + product.bombBomb);
-                    rewardText.push(`${product.bombBomb} Bomb Blast`);
-                }
-                
-                if (product.bombHor) {
-                    const currentBombHor = StorageHelper.getData(StorageHelperKey.BombHor, 0);
-                    StorageHelper.setData(StorageHelperKey.BombHor, currentBombHor + product.bombHor);
-                    rewardText.push(`${product.bombHor} Horizontal Bomb`);
-                }
-                
-                if (product.bombVer) {
-                    const currentBombVer = StorageHelper.getData(StorageHelperKey.BombVer, 0);
-                    StorageHelper.setData(StorageHelperKey.BombVer, currentBombVer + product.bombVer);
-                    rewardText.push(`${product.bombVer} Vertical Bomb`);
-                }
-                
-                if (product.bombAllSame) {
-                    const currentBombAllSame = StorageHelper.getData(StorageHelperKey.BombAllSame, 0);
-                    StorageHelper.setData(StorageHelperKey.BombAllSame, currentBombAllSame + product.bombAllSame);
-                    rewardText.push(`${product.bombAllSame} Color Bomb`);
-                }
-                
-                // 如果是首充礼包，标记对应礼包已购买
-                if (product.isFirstCharge) {
-                    const itemNumber = parseInt(btnName.replace('itemBtn', ''));
-                    const storageKey = StorageHelperKey[`FirstChargeItem${itemNumber}`];
-                    StorageHelper.setBooleanData(storageKey, true);
-                    this.updateItemStatus();
-                }
-                
-                App.view.showMsgTips(`Purchase successful!`);
             } else {
                 // 支付失败
                 console.log('支付失败:', result);
                 App.view.showMsgTips('Payment failed: ' + result.message);
             }
         } catch (error) {
+            // 隐藏处理中对话框
+            this.hideProcessingDialog();
+            
             console.error('支付请求失败:', error);
             App.view.showMsgTips('Payment request failed, please try again later');
         }
@@ -455,6 +566,116 @@ export class BuyViewCmpt extends BaseViewCmpt {
         }
         }
     }
+    
+    // 处理支付成功逻辑
+    private handlePaymentSuccess(product: ProductConfig, btnName: string) {
+        // 发放钻石
+        if (product.diamonds) {
+            GlobalFuncHelper.setGold(product.diamonds);
+            App.event.emit(EventName.Game.UpdataGold);
+        }
+        
+        // 发放道具
+        let rewardText = [];
+        if (product.diamonds) {
+            rewardText.push(`${product.diamonds} Diamonds`);
+        }
+        
+        // 发放炸弹道具
+        if (product.bombBomb) {
+            const currentBombBomb = StorageHelper.getData(StorageHelperKey.BombBomb, 0);
+            StorageHelper.setData(StorageHelperKey.BombBomb, currentBombBomb + product.bombBomb);
+            rewardText.push(`${product.bombBomb} Bomb Blast`);
+        }
+        
+        if (product.bombHor) {
+            const currentBombHor = StorageHelper.getData(StorageHelperKey.BombHor, 0);
+            StorageHelper.setData(StorageHelperKey.BombHor, currentBombHor + product.bombHor);
+            rewardText.push(`${product.bombHor} Horizontal Bomb`);
+        }
+        
+        if (product.bombVer) {
+            const currentBombVer = StorageHelper.getData(StorageHelperKey.BombVer, 0);
+            StorageHelper.setData(StorageHelperKey.BombVer, currentBombVer + product.bombVer);
+            rewardText.push(`${product.bombVer} Vertical Bomb`);
+        }
+        
+        if (product.bombAllSame) {
+            const currentBombAllSame = StorageHelper.getData(StorageHelperKey.BombAllSame, 0);
+            StorageHelper.setData(StorageHelperKey.BombAllSame, currentBombAllSame + product.bombAllSame);
+            rewardText.push(`${product.bombAllSame} Color Bomb`);
+        }
+        
+        // 如果是首充礼包，标记对应礼包已购买
+        if (product.isFirstCharge) {
+            const itemNumber = parseInt(btnName.replace('itemBtn', ''));
+            const storageKey = StorageHelperKey[`FirstChargeItem${itemNumber}`];
+            StorageHelper.setBooleanData(storageKey, true);
+            this.updateItemStatus();
+        }
+        
+        App.view.showMsgTips(`Purchase successful!`);
+    }
+    
+    // 轮询检查3D支付结果
+    private async poll3DPaymentResult(billNo: string, maxAttempts: number = 10, interval: number = 3000) {
+        let attempts = 0;
+        
+        const checkResult = async () => {
+            try {
+                const response = await fetch(`http://119.91.142.92:3001/api/payments/query/${billNo}`);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    // 支付成功
+                    if (result.data.status === 'PAID') {
+                        console.log('3D支付成功:', result.data);
+                        this.closeAuth3DDialog();
+                        
+                        // 获取对应商品信息并处理成功逻辑
+                        const product = this.products[this.currentProductId];
+                        if (product) {
+                            this.handlePaymentSuccess(product, this.currentProductId);
+                        }
+                        return true;
+                    } 
+                    // 支付失败
+                    else if (result.data.status === 'FAILED') {
+                        console.log('3D支付失败:', result.data);
+                        this.closeAuth3DDialog();
+                        App.view.showMsgTips('Payment failed: ' + (result.data.message || 'Unknown error'));
+                        return true;
+                    }
+                }
+                
+                // 继续等待结果
+                attempts++;
+                if (attempts >= maxAttempts) {
+                    console.log('轮询超时，停止检查3D支付结果');
+                    return true;
+                }
+                
+                // 等待一段时间后再次检查
+                setTimeout(checkResult, interval);
+                return false;
+                
+            } catch (error) {
+                console.error('查询3D支付结果失败:', error);
+                attempts++;
+                if (attempts >= maxAttempts) {
+                    console.log('轮询超时，停止检查3D支付结果');
+                    return true;
+                }
+                
+                // 出错后等待一段时间再次检查
+                setTimeout(checkResult, interval);
+                return false;
+            }
+        };
+        
+        return checkResult();
+    }
+    
     return(){
         this.node.active = false;
     }
