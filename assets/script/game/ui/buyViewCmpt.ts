@@ -11,6 +11,7 @@ import { GlobalFuncHelper } from '../../utils/globalFuncHelper';
 import { StorageHelper, StorageHelperKey } from '../../utils/storageHelper';
 import { ToolsHelper } from '../../utils/toolsHelper';
 import { WxManager } from '../../wx/wxManager';
+import { Label } from 'cc';
 const { ccclass, property } = _decorator;
 
 // 添加3D支付相关处理对话框节点
@@ -140,6 +141,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
         
         // 添加测试3D支付的按钮点击事件
         this.initTest3DButton();
+        this.loadTestModeState(); // 加载测试模式状态
     }
     
     // 初始化3D支付相关UI
@@ -199,7 +201,20 @@ export class BuyViewCmpt extends BaseViewCmpt {
             const button = testBtn.getComponent(Button);
             if (button) {
                 button.node.on('click', this.toggleTest3DMode, this);
+                
+                // 设置按钮初始文本
+                const label = testBtn.getChildByName('Label');
+                if (label) {
+                    const labelComp = label.getComponent(Label);
+                    if (labelComp) {
+                        labelComp.string = this.enable3DTest ? '3D Test: ON' : '3D Test: OFF';
+                    }
+                }
+                
+                console.log('3D支付测试按钮已初始化');
             }
+        } else {
+            console.warn('未找到3D支付测试按钮，请检查节点名称是否为 test3DButton');
         }
     }
     
@@ -209,7 +224,37 @@ export class BuyViewCmpt extends BaseViewCmpt {
         const payManager = PayManager.getInstance();
         payManager.setTest3DMode(this.enable3DTest);
         
-        App.view.showMsgTips(`3D支付测试模式: ${this.enable3DTest ? '开启' : '关闭'}`);
+        // 更新按钮文本
+        const testBtn = find('PaymentForm/test3DButton', this.node);
+        if (testBtn) {
+            const label = testBtn.getChildByName('Label');
+            if (label) {
+                const labelComp = label.getComponent(Label);
+                if (labelComp) {
+                    labelComp.string = this.enable3DTest ? '3D Test: ON' : '3D Test: OFF';
+                }
+            }
+        }
+        
+        // 显示提示信息
+        const statusText = this.enable3DTest ? '开启' : '关闭';
+        App.view.showMsgTips(`3D支付测试模式已${statusText}`);
+        
+        // 保存测试模式状态到本地存储
+        sys.localStorage.setItem('3DTestMode', this.enable3DTest.toString());
+        
+        console.log(`3D支付测试模式: ${statusText}`);
+    }
+    
+    // 加载测试模式状态
+    private loadTestModeState() {
+        const savedMode = sys.localStorage.getItem('3DTestMode');
+        if (savedMode !== null) {
+            this.enable3DTest = savedMode === 'true';
+            const payManager = PayManager.getInstance();
+            payManager.setTest3DMode(this.enable3DTest);
+            console.log(`加载3D测试模式状态: ${this.enable3DTest ? '开启' : '关闭'}`);
+        }
     }
     
     // 显示处理中对话框
@@ -717,8 +762,17 @@ export class BuyViewCmpt extends BaseViewCmpt {
                 throw new Error('PayManager not initialized');
             }
 
+            // 显示当前支付模式
+            const modeText = this.enable3DTest ? '3D测试模式' : '正常支付模式';
+            console.log(`当前支付模式: ${modeText}`);
             console.log('发起支付请求，参数:', payParams);
-            return await payManager.requestPay(payParams);
+            
+            const result = await payManager.requestPay(payParams);
+            
+            // 显示支付结果
+            console.log(`支付响应 (${modeText}):`, result);
+            
+            return result;
         } catch (error) {
             console.error('支付请求失败:', error);
             throw error;
