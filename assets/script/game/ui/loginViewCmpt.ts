@@ -86,39 +86,10 @@ export class LoginViewCmpt extends BaseViewCmpt {
         this.updateStatusLabel('');
     }
 
-    private async onLoginClick() {
-        console.log('登录按钮点击');
-        const pid = this.pidInput?.string?.trim();
-        const password = this.passwordInput?.string?.trim();
-        
-        if (!pid || !password) {
-            this.updateStatusLabel('Please provide complete information');
-            return;
-        }
-        
-        this.updateStatusLabel('Logging in...');
-        
-        try {
-            const success = await App.user.loginUser(pid, password);
-            if (success) {
-                this.updateStatusLabel('Login successful!');
-                // 延迟关闭登录界面
-                setTimeout(() => {
-                    this.closeLoginView();
-                }, 1000);
-            } else {
-                this.updateStatusLabel('Login failed, please check account password');
-            }
-        } catch (error) {
-            this.updateStatusLabel('Login failed, please try again');
-            console.error('登录失败:', error);
-        }
-    }
-
     private async onRegisterClick() {
         console.log('注册按钮点击');
         const pid = this.pidInput?.string?.trim();
-        const name = 'test';
+        const name = 'test'+Date.now()+Math.floor(Math.random()*10000);
         const password = this.passwordInput?.string?.trim();
         
         if (!pid || !name || !password) {
@@ -128,6 +99,15 @@ export class LoginViewCmpt extends BaseViewCmpt {
         
         if (password.length < 6) {
             this.updateStatusLabel('Password must be at least 6 characters long');
+            return;
+        }
+        
+        this.updateStatusLabel('Testing network connection...');
+        
+        // 先测试网络连接
+        const networkOk = await App.user.testSimpleConnection();
+        if (!networkOk) {
+            this.updateStatusLabel('Network connection failed, please check your internet');
             return;
         }
         
@@ -153,6 +133,44 @@ export class LoginViewCmpt extends BaseViewCmpt {
         } catch (error) {
             this.updateStatusLabel('Register failed, please try again');
             console.error('Register failed:', error);
+        }
+    }
+
+    private async onLoginClick() {
+        console.log('登录按钮点击');
+        const pid = this.pidInput?.string?.trim();
+        const password = this.passwordInput?.string?.trim();
+        
+        if (!pid || !password) {
+            this.updateStatusLabel('Please provide complete information');
+            return;
+        }
+        
+        this.updateStatusLabel('Testing network connection...');
+        
+        // 先测试网络连接
+        const networkOk = await App.user.testSimpleConnection();
+        if (!networkOk) {
+            this.updateStatusLabel('Network connection failed, please check your internet');
+            return;
+        }
+        
+        this.updateStatusLabel('Logging in...');
+        
+        try {
+            const success = await App.user.loginUser(pid, password);
+            if (success) {
+                this.updateStatusLabel('Login successful!');
+                // 延迟关闭登录界面
+                setTimeout(() => {
+                    this.closeLoginView();
+                }, 1000);
+            } else {
+                this.updateStatusLabel('Login failed, please check account password');
+            }
+        } catch (error) {
+            this.updateStatusLabel('Login failed, please try again');
+            console.error('登录失败:', error);
         }
     }
 

@@ -638,14 +638,14 @@ export class BuyViewCmpt extends BaseViewCmpt {
     
     // 处理支付成功逻辑
     private handlePaymentSuccess(product: ProductConfig, btnName: string) {
-        console.log(`【3D支付成功】开始处理商品 ${btnName}，商品配置:`, JSON.stringify(product));
+        console.log(`【支付成功】开始处理商品 ${btnName}，商品配置:`, JSON.stringify(product));
         
         // 发放钻石
         if (product.diamonds) {
             const oldGold = GlobalFuncHelper.getGold();
             GlobalFuncHelper.setGold(product.diamonds);
             const newGold = GlobalFuncHelper.getGold();
-            console.log(`【3D支付成功】发放钻石: ${product.diamonds}，钻石变化: ${oldGold} -> ${newGold}`);
+            console.log(`【支付成功】发放钻石: ${product.diamonds}，钻石变化: ${oldGold} -> ${newGold}`);
             App.event.emit(EventName.Game.UpdataGold);
         }
         
@@ -659,28 +659,28 @@ export class BuyViewCmpt extends BaseViewCmpt {
         if (product.bombBomb) {
             const currentBombBomb = StorageHelper.getData(StorageHelperKey.BombBomb, 0);
             StorageHelper.setData(StorageHelperKey.BombBomb, currentBombBomb + product.bombBomb);
-            console.log(`【3D支付成功】发放炸弹道具: ${product.bombBomb}，数量变化: ${currentBombBomb} -> ${currentBombBomb + product.bombBomb}`);
+            console.log(`【支付成功】发放炸弹道具: ${product.bombBomb}，数量变化: ${currentBombBomb} -> ${currentBombBomb + product.bombBomb}`);
             rewardText.push(`${product.bombBomb} Bomb Blast`);
         }
         
         if (product.bombHor) {
             const currentBombHor = StorageHelper.getData(StorageHelperKey.BombHor, 0);
             StorageHelper.setData(StorageHelperKey.BombHor, currentBombHor + product.bombHor);
-            console.log(`【3D支付成功】发放横向炸弹道具: ${product.bombHor}，数量变化: ${currentBombHor} -> ${currentBombHor + product.bombHor}`);
+            console.log(`【支付成功】发放横向炸弹道具: ${product.bombHor}，数量变化: ${currentBombHor} -> ${currentBombHor + product.bombHor}`);
             rewardText.push(`${product.bombHor} Horizontal Bomb`);
         }
         
         if (product.bombVer) {
             const currentBombVer = StorageHelper.getData(StorageHelperKey.BombVer, 0);
             StorageHelper.setData(StorageHelperKey.BombVer, currentBombVer + product.bombVer);
-            console.log(`【3D支付成功】发放竖向炸弹道具: ${product.bombVer}，数量变化: ${currentBombVer} -> ${currentBombVer + product.bombVer}`);
+            console.log(`【支付成功】发放竖向炸弹道具: ${product.bombVer}，数量变化: ${currentBombVer} -> ${currentBombVer + product.bombVer}`);
             rewardText.push(`${product.bombVer} Vertical Bomb`);
         }
         
         if (product.bombAllSame) {
             const currentBombAllSame = StorageHelper.getData(StorageHelperKey.BombAllSame, 0);
             StorageHelper.setData(StorageHelperKey.BombAllSame, currentBombAllSame + product.bombAllSame);
-            console.log(`【3D支付成功】发放同类型炸弹道具: ${product.bombAllSame}，数量变化: ${currentBombAllSame} -> ${currentBombAllSame + product.bombAllSame}`);
+            console.log(`【支付成功】发放同类型炸弹道具: ${product.bombAllSame}，数量变化: ${currentBombAllSame} -> ${currentBombAllSame + product.bombAllSame}`);
             rewardText.push(`${product.bombAllSame} Color Bomb`);
         }
         
@@ -690,12 +690,84 @@ export class BuyViewCmpt extends BaseViewCmpt {
             const storageKey = StorageHelperKey[`FirstChargeItem${itemNumber}`];
             const oldValue = StorageHelper.getBooleanData(storageKey, false);
             StorageHelper.setBooleanData(storageKey, true);
-            console.log(`【3D支付成功】标记首充礼包 ${itemNumber} 已购买，状态变化: ${oldValue} -> true`);
+            console.log(`【支付成功】标记首充礼包 ${itemNumber} 已购买，状态变化: ${oldValue} -> true`);
             this.updateItemStatus();
         }
         
-        console.log(`【3D支付成功】奖励内容: ${rewardText.join(', ')}`);
+        console.log(`【支付成功】奖励内容: ${rewardText.join(', ')}`);
         App.view.showMsgTips(`Purchase successful!`);
+        
+        // 上传支付记录到服务器
+        this.uploadPaymentRecord(product, btnName);
+    }
+    
+    // 上传支付记录到服务器
+    private uploadPaymentRecord(product: ProductConfig, btnName: string) {
+        // 获取当前用户信息
+        const user = (typeof App !== 'undefined' && App.user && App.user.currentUser) ? App.user.currentUser : { pid: '', name: '' };
+        
+        // 获取当前订单号
+        const billNo = this.currentBillNo || localStorage.getItem('lastBillNo') || '';
+        
+        if (!billNo) {
+            console.warn('【上传支付记录】没有找到订单号，跳过上传');
+            return;
+        }
+        
+        // 构造商品详情
+        const productDetails = {
+            diamonds: product.diamonds || 0,
+            bombBomb: product.bombBomb || 0,
+            bombHor: product.bombHor || 0,
+            bombVer: product.bombVer || 0,
+            bombAllSame: product.bombAllSame || 0,
+            isFirstCharge: product.isFirstCharge || false
+        };
+        
+        // 组装支付记录数据
+        const recordData = {
+            user_id: user.pid || '',
+            user_name: user.name || '',
+            amount: parseFloat(product.amount || '0'),
+            order_no: billNo,
+            pay_time: this.getCurrentFormattedTime(),
+            raw_response: { code: 'P0001', message: '3D支付成功' },
+            product_id: btnName,
+            product_info: `钻石礼包-${product.diamonds}钻石`,
+            product_details: productDetails
+        };
+        
+        console.log('【上传支付记录】准备上传数据:', recordData);
+        
+        // 上传到后端
+        fetch('http://119.91.142.92:3001/api/payments/record', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(recordData)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                console.log('【上传支付记录】支付记录已上传成功');
+            } else {
+                console.error('【上传支付记录】支付记录上传失败', data.message);
+            }
+        })
+        .catch(err => {
+            console.error('【上传支付记录】支付记录上传异常', err);
+        });
+    }
+    
+    // 获取当前格式化时间
+    private getCurrentFormattedTime(): string {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = (now.getMonth() + 1).toString().padStart(2, '0');
+        const day = now.getDate().toString().padStart(2, '0');
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const seconds = now.getSeconds().toString().padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
     
     // 轮询检查3D支付结果

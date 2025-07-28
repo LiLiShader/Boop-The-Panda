@@ -35,27 +35,9 @@ app.get('/api/get3DResult', async (req, res) => {
             console.error('通知支付代理服务器失败:', proxyError.message);
         }
         
-        // 如果支付成功，记录支付信息到支付记录服务
+        // 3D支付成功，但支付记录由游戏客户端负责上传
         if (code === 'P0001') {
-            try {
-                // 构造支付记录数据
-                const paymentRecord = {
-                    user_id: '', // 可能无法获取用户ID
-                    user_name: '',
-                    amount: parseFloat(amount || 0),
-                    order_no: billNo,
-                    pay_time: new Date().toISOString().replace('T', ' ').substring(0, 19),
-                    raw_response: req.query,
-                    payment_type: '3D',
-                    status: 'PAID'
-                };
-                
-                // 发送到支付记录服务
-                await axios.post(`${MAIN_SERVER_URL}/api/payments/record`, paymentRecord);
-                console.log('3D支付记录已发送到支付记录服务');
-            } catch (recordError) {
-                console.error('记录3D支付信息失败:', recordError.message);
-            }
+            console.log('3D支付成功，支付记录将由游戏客户端上传');
         }
         
         // 返回简单的成功页面
