@@ -5,8 +5,14 @@ const bodyParser = require('body-parser');
 
 const app = express();
 const port = process.env.PORT || 5001; // 3D支付回调服务监听5001端口
-const MAIN_SERVER_URL = 'http://119.91.142.92:3001'; // 主服务器URL
-const PROXY_SERVER_URL = 'http://119.91.142.92:5000'; // 支付代理服务器URL
+// 服务器配置
+const SERVER_HOST = '119.91.142.92';
+const MAIN_SERVER_PORT = 3001;
+const PROXY_SERVER_PORT = 5000;
+const PROTOCOL = 'http';
+
+const MAIN_SERVER_URL = `${PROTOCOL}://${SERVER_HOST}:${MAIN_SERVER_PORT}`; // 主服务器URL
+const PROXY_SERVER_URL = `${PROTOCOL}://${SERVER_HOST}:${PROXY_SERVER_PORT}`; // 支付代理服务器URL
 
 // 允许所有域名访问的CORS配置
 app.use(cors({

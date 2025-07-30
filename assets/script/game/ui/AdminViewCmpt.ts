@@ -1,4 +1,5 @@
 import { _decorator, Component, EditBox, Button, Label, Node, Prefab, instantiate, ScrollView } from 'cc';
+import { ServerConfig } from '../../config/serverConfig';
 const { ccclass, property } = _decorator;
 
 @ccclass('AdminViewCmpt')
@@ -36,8 +37,8 @@ export class AdminViewCmpt extends Component {
             this.clearPayList();
             return;
         }
-        // 查询用户信息
-        const userResp = await fetch(`http://119.91.142.92:3001/api/users/${pid}`);
+        // 查询用户信息 - 使用统一配置
+        const userResp = await fetch(`${ServerConfig.getMainServerAPI()}/users/${pid}`);
         const user = await userResp.json();
         if (!user.success) {
             this.userInfoLabel.string = 'User not found';
@@ -46,15 +47,15 @@ export class AdminViewCmpt extends Component {
         }
         // this.userInfoLabel.string = `UserID: ${user.data.pid}\nName: ${user.data.name}\nLevel: ${user.data.level}\nGold: ${user.data.gold}\nCreated: ${user.data.created_at}`;
         this.userInfoLabel.string = `UserID: ${user.data.pid}\nName: ${user.data.name}\nCreated: ${user.data.created_at}`;
-        // 查询支付记录
-        const payResp = await fetch(`http://119.91.142.92:3001/api/payments/user/${pid}`);
+        // 查询支付记录 - 使用统一配置
+        const payResp = await fetch(`${ServerConfig.getMainServerAPI()}/payments/user/${pid}`);
         const pay = await payResp.json();
         this.updatePayList(pay.success ? pay.data : []);
     }
 
     async onQueryAll() {
-        // 查询所有支付订单
-        const resp = await fetch('http://119.91.142.92:3001/api/payments/all');
+        // 查询所有支付订单 - 使用统一配置
+        const resp = await fetch(`${ServerConfig.getMainServerAPI()}/payments/all`);
         const result = await resp.json();
         if (!result.success) {
             this.userInfoLabel.string = 'Query failed';

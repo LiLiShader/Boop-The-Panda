@@ -2,7 +2,12 @@
 const http = require('http');
 
 // 配置
-const API_HOST = '119.91.142.92';
+// 服务器配置
+const SERVER_HOST = '119.91.142.92';
+const MAIN_SERVER_PORT = 3001;
+const PROTOCOL = 'http';
+
+const API_HOST = SERVER_HOST;
 const API_PORT = 3001;
 const USER_ID = 'testid'; // 替换为实际存在的用户ID
 

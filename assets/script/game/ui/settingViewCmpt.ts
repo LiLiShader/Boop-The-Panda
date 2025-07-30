@@ -4,6 +4,7 @@ import { PageIndex } from '../../const/enumConst';
 import { EventName } from '../../const/eventName';
 import { LevelConfig } from '../../const/levelConfig';
 import { App } from '../../core/app';
+import { ServerConfig } from '../../config/serverConfig';
 import { CocosHelper } from '../../utils/cocosHelper';
 import { GlobalFuncHelper } from '../../utils/globalFuncHelper';
 import { StorageHelper, StorageHelperKey } from '../../utils/storageHelper';
@@ -113,8 +114,8 @@ export class settingViewCmpt extends BaseViewCmpt {
             console.warn('未登录，无法查询支付记录');
             return;
         }
-        // 请求后端API
-        const resp = await fetch(`http://119.91.142.92:3001/api/payments/user/${user.pid}`);
+        // 请求后端API - 使用统一配置
+        const resp = await fetch(`${ServerConfig.getMainServerAPI()}/payments/user/${user.pid}`);
         const result = await resp.json();
         if (result.success) {
             console.log('支付记录：', result.data);

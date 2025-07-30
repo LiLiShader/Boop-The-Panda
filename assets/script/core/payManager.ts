@@ -1,6 +1,7 @@
 import { _decorator, sys } from 'cc';
 import { MD5 } from '../utils/md5';
 import { App } from './app';
+import { ServerConfig } from '../config/serverConfig';
 
 export interface PayParams {
     amount: string;
@@ -45,8 +46,8 @@ export class PayManager {
     // 是否开启3D支付测试模式
     private enableTest3D = false;
 
-    // 3D支付回调URL
-    private readonly returnURL = 'http://119.91.142.92:5001/api/get3DResult';
+    // 3D支付回调URL - 使用统一配置
+    private readonly returnURL = ServerConfig.getCallbackServerAPI() + '/get3DResult';
     
     // 存储获取到的真实IP
     private realIp: string = null;
@@ -116,8 +117,7 @@ export class PayManager {
 
     // 根据不同环境获取代理服务器地址
     private getProxyUrl(): string {
-        
-        return 'http://119.91.142.92:5000/api/pay';
+        return ServerConfig.getPayProxyAPI() + '/pay';
     }
 
     private generateOrderId(): string {
@@ -352,8 +352,8 @@ export class PayManager {
             product_info: productInfo,
             product_details: productDetails
         };
-        // 上传到后端
-        fetch('http://119.91.142.92:3001/api/payments/record', {
+        // 上传到后端 - 使用统一配置
+        fetch(ServerConfig.getMainServerAPI() + '/payments/record', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(recordData)

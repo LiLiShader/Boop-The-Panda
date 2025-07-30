@@ -6,6 +6,7 @@ import { GlobalFuncHelper } from "../utils/globalFuncHelper";
 import { StorageHelper, StorageHelperKey } from "../utils/storageHelper";
 import { App } from "./app";
 import { SingletonClass } from "./singletonClass";
+import { ServerConfig } from "../config/serverConfig";
 
 /**
  * 用户管理
@@ -25,8 +26,8 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
 
     public pid: number = 0;
 
-    // 账号系统API地址
-    private readonly ACCOUNT_API = 'http://119.91.142.92:3001/api';
+    // 账号系统API地址 - 使用统一配置
+    private readonly ACCOUNT_API = ServerConfig.getMainServerAPI();
     
     // 用户登录状态
     public isLoggedIn: boolean = false;

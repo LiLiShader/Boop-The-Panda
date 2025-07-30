@@ -1,5 +1,10 @@
 // 配置API基础URL
-const API_BASE_URL = 'http://119.91.142.92:3001/api';
+// 服务器配置
+const SERVER_HOST = '119.91.142.92';
+const MAIN_SERVER_PORT = 3001;
+const PROTOCOL = 'http';
+
+const API_BASE_URL = `${PROTOCOL}://${SERVER_HOST}:${MAIN_SERVER_PORT}/api`;
 
 // 全局变量
 let currentOrders = []; // 存储当前查询到的订单列表
