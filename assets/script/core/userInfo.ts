@@ -64,15 +64,15 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 10000);
                 
-                const response = await fetch(`${this.ACCOUNT_API}/auth/register`, {
-                    method: 'POST',
+            const response = await fetch(`${this.ACCOUNT_API}/auth/register`, {
+                method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify({ pid, name, password }),
                     signal: controller.signal
-                });
+            });
                 
                 clearTimeout(timeoutId);
                 
@@ -82,16 +82,16 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
                     console.error('[Register] HTTP错误:', response.status, response.statusText);
                     return false;
                 }
-                
-                const result = await response.json();
+            
+            const result = await response.json();
                 console.log('[Register] 响应数据:', result);
                 
-                if (result.success) {
-                    console.log('用户注册成功:', result.data);
-                    return true;
-                } else {
-                    console.error('用户注册失败:', result.message);
-                    return false;
+            if (result.success) {
+                console.log('用户注册成功:', result.data);
+                return true;
+            } else {
+                console.error('用户注册失败:', result.message);
+                return false;
                 }
             } catch (fetchError) {
                 console.log('[Register] Fetch失败，尝试XMLHttpRequest:', fetchError);
@@ -163,15 +163,15 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 10000);
                 
-                const response = await fetch(`${this.ACCOUNT_API}/auth/login`, {
-                    method: 'POST',
+            const response = await fetch(`${this.ACCOUNT_API}/auth/login`, {
+                method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify({ pid, password }),
                     signal: controller.signal
-                });
+            });
                 
                 clearTimeout(timeoutId);
                 
@@ -181,22 +181,22 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
                     console.error('[Login] HTTP错误:', response.status, response.statusText);
                     return false;
                 }
-                
-                const result = await response.json();
+            
+            const result = await response.json();
                 console.log('[Login] 响应数据:', result);
                 
-                if (result.success) {
-                    console.log('用户登录成功:', result.data);
-                    this.isLoggedIn = true;
-                    this.currentUser = result.data;
-                    
-                    // 保存登录信息
-                    this.saveLoginInfo(pid, password);
-                    
-                    return true;
-                } else {
-                    console.error('用户登录失败:', result.message);
-                    return false;
+            if (result.success) {
+                console.log('用户登录成功:', result.data);
+                this.isLoggedIn = true;
+                this.currentUser = result.data;
+                
+                // 保存登录信息
+                this.saveLoginInfo(pid, password);
+                
+                return true;
+            } else {
+                console.error('用户登录失败:', result.message);
+                return false;
                 }
             } catch (fetchError) {
                 console.log('[Login] Fetch失败，尝试XMLHttpRequest:', fetchError);
