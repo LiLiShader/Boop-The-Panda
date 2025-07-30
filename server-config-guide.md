@@ -42,6 +42,11 @@ http://your-game.com/?env=testing
 http://your-game.com/?env=production
 ```
 
+#### 方式四：域名自动检测
+- **localhost/127.0.0.1** → 自动设置为开发环境
+- **thunderousfreeze.com** → 自动设置为生产环境
+- **其他域名** → 自动设置为测试环境
+
 ## 环境配置
 
 ### 开发环境 (Development)

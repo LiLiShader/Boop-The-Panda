@@ -13,6 +13,7 @@ import { ToolsHelper } from '../../utils/toolsHelper';
 import { WxManager } from '../../wx/wxManager';
 import { Label } from 'cc';
 import { Color, Widget } from 'cc';
+import { ServerConfig } from '../../config/serverConfig';
 const { ccclass, property } = _decorator;
 
 // 添加3D支付相关处理对话框节点
@@ -740,7 +741,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
         console.log('【上传支付记录】准备上传数据:', recordData);
         
         // 上传到后端
-        fetch('http://119.91.142.92:3001/api/payments/record', {
+        fetch(ServerConfig.getMainServerAPI() + '/payments/record', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(recordData)
@@ -776,7 +777,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
         
         const checkResult = async () => {
             try {
-                const response = await fetch(`http://119.91.142.92:3001/api/payments/query/${billNo}`);
+                const response = await fetch(ServerConfig.getMainServerAPI() + '/payments/query/' + billNo);
                 const result = await response.json();
                 
                 if (result.success && result.data) {
@@ -956,7 +957,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
         
         try {
             // 构建查询URL
-            const queryUrl = `http://119.91.142.92:5000/api/payment/status/${this.currentBillNo}`;
+            const queryUrl = ServerConfig.getPayProxyAPI() + '/payment/status/' + this.currentBillNo;
             console.log(`【3D支付轮询】查询URL: ${queryUrl}`);
             
             // 查询支付状态API
@@ -1029,7 +1030,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
         this.currentBillNo = billNo;
         
         try {
-            const queryUrl = `http://119.91.142.92:5000/api/payment/status/${billNo}`;
+            const queryUrl = ServerConfig.getPayProxyAPI() + '/payment/status/' + billNo;
             console.log(`【3D支付测试】查询URL: ${queryUrl}`);
             
             const response = await fetch(queryUrl);
@@ -1113,7 +1114,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
         console.log(`【手动测试】开始查询订单: ${billNo}`);
         
         try {
-            const queryUrl = `http://119.91.142.92:5000/api/payment/status/${billNo}`;
+            const queryUrl = ServerConfig.getPayProxyAPI() + '/payment/status/' + billNo;
             console.log(`【手动测试】查询URL: ${queryUrl}`);
             
             const response = await fetch(queryUrl);

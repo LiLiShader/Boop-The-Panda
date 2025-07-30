@@ -16,6 +16,7 @@ import { Prefab, sys, Node } from "cc";
 import { ResLoadHelper } from "../utils/resLoadHelper";
 import { ViewName } from "../const/viewNameConst";
 import { randomAd } from "../utils/randomAdManager";
+import { EnvironmentConfig } from "../config/environment";
 /**
  * App管理
  */
@@ -33,6 +34,9 @@ class GameApp extends SingletonClass<GameApp> {
     get gameLogic() { return GameLogic.getInstance<GameLogic>(GameLogic); }
 
     protected async onInit(canvas: Node) {
+        // 初始化环境配置
+        EnvironmentConfig.autoDetectEnvironment();
+        
         // this.net.init();
         // this.i18n.init();
         // this.subGame.init();

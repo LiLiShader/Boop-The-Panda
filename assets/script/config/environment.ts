@@ -11,7 +11,8 @@ export enum Environment {
 
 export class EnvironmentConfig {
     // 当前环境，可以通过环境变量或构建配置设置
-    private static currentEnv: Environment = Environment.PRODUCTION;
+    // 默认设置为测试环境，避免误用生产环境
+    private static currentEnv: Environment = Environment.TESTING;
     
     // 各环境的服务器配置
     private static readonly SERVER_CONFIGS = {
@@ -43,7 +44,9 @@ export class EnvironmentConfig {
      */
     static setEnvironment(env: Environment): void {
         this.currentEnv = env;
+        const config = this.getCurrentConfig();
         console.log(`[EnvironmentConfig] 当前环境设置为: ${env}`);
+        console.log(`[EnvironmentConfig] 服务器配置: ${config.protocol}://${config.host}:${config.mainServerPort}`);
     }
     
     /**
@@ -148,6 +151,20 @@ export class EnvironmentConfig {
                 if (Object.values(Environment).includes(env)) {
                     this.setEnvironment(env);
                     console.log(`[EnvironmentConfig] 通过URL参数自动设置环境: ${env}`);
+                }
+            } else {
+                // 如果没有URL参数，根据当前域名自动检测
+                const hostname = window.location.hostname;
+                if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                    this.setEnvironment(Environment.DEVELOPMENT);
+                    console.log(`[EnvironmentConfig] 根据域名自动设置为开发环境: ${hostname}`);
+                } else if (hostname === 'thunderousfreeze.com') {
+                    this.setEnvironment(Environment.PRODUCTION);
+                    console.log(`[EnvironmentConfig] 根据域名自动设置为生产环境: ${hostname}`);
+                } else {
+                    // 默认使用测试环境
+                    this.setEnvironment(Environment.TESTING);
+                    console.log(`[EnvironmentConfig] 根据域名自动设置为测试环境: ${hostname}`);
                 }
             }
         }
