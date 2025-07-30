@@ -3,6 +3,62 @@ const { pool } = require('../config/database');
 
 const router = express.Router();
 
+// 用户登录API
+router.post('/login', async (req, res) => {
+    console.log('[Login] 收到登录请求');
+    console.log('[Login] 请求头:', req.headers);
+    console.log('[Login] 请求体:', req.body);
+    console.log('[Login] 用户代理:', req.get('User-Agent'));
+    
+    const { pid, password } = req.body;
+    
+    if (!pid || !password) {
+        console.log('[Login] 参数不完整:', { pid, hasPassword: !!password });
+        return res.json({
+            success: false,
+            message: '请填写完整信息'
+        });
+    }
+    
+    console.log('[Login] 开始数据库查询:', { pid });
+    
+    try {
+        const [results] = await pool.promise().query(
+            'SELECT * FROM users WHERE pid = ? AND password = ?',
+            [pid, password]
+        );
+        
+        if (results.length === 0) {
+            console.log('[Login] 用户不存在或密码错误:', { pid });
+            return res.json({
+                success: false,
+                message: '玩家ID或密码错误'
+            });
+        }
+        
+        const user = results[0];
+        console.log('[Login] 登录成功:', { pid, name: user.name });
+        res.json({
+            success: true,
+            message: '登录成功',
+            data: {
+                id: user.id,
+                pid: user.pid,
+                name: user.name,
+                level: user.level,
+                gold: user.gold,
+                icon: user.icon
+            }
+        });
+    } catch (error) {
+        console.error('[Login] 数据库查询失败:', error);
+        res.json({
+            success: false,
+            message: '登录失败，请重试'
+        });
+    }
+});
+
 // 获取所有用户
 router.get('/users', async (req, res) => {
     try {
