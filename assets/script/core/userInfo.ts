@@ -57,14 +57,14 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
     async registerUser(pid: string, name: string, password: string): Promise<boolean> {
         try {
             console.log('[Register] 开始注册请求:', { pid, name, password: '***' });
-            console.log('[Register] 请求URL:', `${this.ACCOUNT_API}/auth/register`);
+            console.log('[Register] 请求URL:', `${this.ACCOUNT_API}/users`);
             
             // 尝试使用fetch，如果失败则使用XMLHttpRequest
             try {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 10000);
                 
-            const response = await fetch(`${this.ACCOUNT_API}/auth/register`, {
+            const response = await fetch(`${this.ACCOUNT_API}/users`, {
                 method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
@@ -145,7 +145,7 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
                 resolve(false);
             };
             
-            xhr.open('POST', `${this.ACCOUNT_API}/auth/register`, true);
+            xhr.open('POST', `${this.ACCOUNT_API}/users`, true);
             xhr.setRequestHeader('Content-Type', 'application/json');
             xhr.setRequestHeader('Accept', 'application/json');
             xhr.send(JSON.stringify({ pid, name, password }));
@@ -156,14 +156,14 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
     async loginUser(pid: string, password: string): Promise<boolean> {
         try {
             console.log('[Login] 开始登录请求:', { pid, password: '***' });
-            console.log('[Login] 请求URL:', `${this.ACCOUNT_API}/auth/login`);
+            console.log('[Login] 请求URL:', `${this.ACCOUNT_API}/login`);
             
             // 尝试使用fetch，如果失败则使用XMLHttpRequest
             try {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 10000);
                 
-            const response = await fetch(`${this.ACCOUNT_API}/auth/login`, {
+            const response = await fetch(`${this.ACCOUNT_API}/login`, {
                 method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
@@ -256,7 +256,7 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
                 resolve(false);
             };
             
-            xhr.open('POST', `${this.ACCOUNT_API}/auth/login`, true);
+            xhr.open('POST', `${this.ACCOUNT_API}/login`, true);
             xhr.setRequestHeader('Content-Type', 'application/json');
             xhr.setRequestHeader('Accept', 'application/json');
             xhr.send(JSON.stringify({ pid, password }));

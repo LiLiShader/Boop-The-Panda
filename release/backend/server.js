@@ -70,8 +70,8 @@ const startServer = async () => {
         paymentService.initCacheCleaner();
         
         // 启动服务
-        app.listen(PORT, () => {
-            console.log(`Boop-The-Panda后端服务运行在 http://localhost:${PORT}`);
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log(`Boop-The-Panda后端服务运行在 http://0.0.0.0:${PORT}`);
             console.log('当前环境:', process.env.NODE_ENV || 'development');
             console.log('=== 支持的API ===');
             console.log('管理后台API:');

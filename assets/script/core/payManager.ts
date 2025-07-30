@@ -353,7 +353,7 @@ export class PayManager {
             product_details: productDetails
         };
         // 上传到后端 - 使用统一配置
-        fetch(ServerConfig.getMainServerAPI() + '/payments/record', {
+        fetch(ServerConfig.getPayProxyAPI() + '/record', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(recordData)

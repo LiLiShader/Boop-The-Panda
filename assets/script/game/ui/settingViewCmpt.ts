@@ -115,7 +115,7 @@ export class settingViewCmpt extends BaseViewCmpt {
             return;
         }
         // 请求后端API - 使用统一配置
-        const resp = await fetch(`${ServerConfig.getMainServerAPI()}/payments/user/${user.pid}`);
+        const resp = await fetch(`${ServerConfig.getMainServerAPI()}/users/${user.pid}/payments`);
         const result = await resp.json();
         if (result.success) {
             console.log('支付记录：', result.data);

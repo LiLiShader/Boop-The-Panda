@@ -48,14 +48,14 @@ export class AdminViewCmpt extends Component {
         // this.userInfoLabel.string = `UserID: ${user.data.pid}\nName: ${user.data.name}\nLevel: ${user.data.level}\nGold: ${user.data.gold}\nCreated: ${user.data.created_at}`;
         this.userInfoLabel.string = `UserID: ${user.data.pid}\nName: ${user.data.name}\nCreated: ${user.data.created_at}`;
         // 查询支付记录 - 使用统一配置
-        const payResp = await fetch(`${ServerConfig.getMainServerAPI()}/payments/user/${pid}`);
+        const payResp = await fetch(`${ServerConfig.getMainServerAPI()}/users/${pid}/payments`);
         const pay = await payResp.json();
         this.updatePayList(pay.success ? pay.data : []);
     }
 
     async onQueryAll() {
         // 查询所有支付订单 - 使用统一配置
-        const resp = await fetch(`${ServerConfig.getMainServerAPI()}/payments/all`);
+        const resp = await fetch(`${ServerConfig.getMainServerAPI()}/payments`);
         const result = await resp.json();
         if (!result.success) {
             this.userInfoLabel.string = 'Query failed';

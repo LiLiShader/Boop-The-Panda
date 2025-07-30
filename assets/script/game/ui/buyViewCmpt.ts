@@ -741,7 +741,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
         console.log('【上传支付记录】准备上传数据:', recordData);
         
         // 上传到后端
-        fetch(ServerConfig.getMainServerAPI() + '/payments/record', {
+        fetch(ServerConfig.getPayProxyAPI() + '/record', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(recordData)
@@ -777,7 +777,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
         
         const checkResult = async () => {
             try {
-                const response = await fetch(ServerConfig.getMainServerAPI() + '/payments/query/' + billNo);
+                const response = await fetch(ServerConfig.getPayProxyAPI() + '/status/' + billNo);
                 const result = await response.json();
                 
                 if (result.success && result.data) {
@@ -957,7 +957,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
         
         try {
             // 构建查询URL
-            const queryUrl = ServerConfig.getPayProxyAPI() + '/payment/status/' + this.currentBillNo;
+            const queryUrl = ServerConfig.getPayProxyAPI() + '/status/' + this.currentBillNo;
             console.log(`【3D支付轮询】查询URL: ${queryUrl}`);
             
             // 查询支付状态API
@@ -1030,7 +1030,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
         this.currentBillNo = billNo;
         
         try {
-            const queryUrl = ServerConfig.getPayProxyAPI() + '/payment/status/' + billNo;
+            const queryUrl = ServerConfig.getPayProxyAPI() + '/status/' + billNo;
             console.log(`【3D支付测试】查询URL: ${queryUrl}`);
             
             const response = await fetch(queryUrl);
@@ -1114,7 +1114,7 @@ export class BuyViewCmpt extends BaseViewCmpt {
         console.log(`【手动测试】开始查询订单: ${billNo}`);
         
         try {
-            const queryUrl = ServerConfig.getPayProxyAPI() + '/payment/status/' + billNo;
+            const queryUrl = ServerConfig.getPayProxyAPI() + '/status/' + billNo;
             console.log(`【手动测试】查询URL: ${queryUrl}`);
             
             const response = await fetch(queryUrl);

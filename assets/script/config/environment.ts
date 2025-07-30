@@ -18,23 +18,17 @@ export class EnvironmentConfig {
     private static readonly SERVER_CONFIGS = {
         [Environment.DEVELOPMENT]: {
             host: '119.91.142.92',
-            mainServerPort: 3001,
-            payProxyPort: 5000,
-            callbackServerPort: 5001,
+            serverPort: 3000,  // 合并后的统一端口
             protocol: 'http'
         },
         [Environment.TESTING]: {
             host: '119.91.142.92',
-            mainServerPort: 3001,
-            payProxyPort: 5000,
-            callbackServerPort: 5001,
+            serverPort: 3000,  // 合并后的统一端口
             protocol: 'http'
         },
         [Environment.PRODUCTION]: {
             host: 'thunderousfreeze.com',
-            mainServerPort: 3001,
-            payProxyPort: 5000,
-            callbackServerPort: 5001,
+            serverPort: 3000,  // 合并后的统一端口
             protocol: 'https' 
         }
     };
@@ -46,7 +40,7 @@ export class EnvironmentConfig {
         this.currentEnv = env;
         const config = this.getCurrentConfig();
         console.log(`[EnvironmentConfig] 当前环境设置为: ${env}`);
-        console.log(`[EnvironmentConfig] 服务器配置: ${config.protocol}://${config.host}:${config.mainServerPort}`);
+        console.log(`[EnvironmentConfig] 服务器配置: ${config.protocol}://${config.host}:${config.serverPort}`);
     }
     
     /**
@@ -68,7 +62,7 @@ export class EnvironmentConfig {
      */
     static getMainServerAPI(): string {
         const config = this.getCurrentConfig();
-        return `${config.protocol}://${config.host}:${config.mainServerPort}/api`;
+        return `${config.protocol}://${config.host}:${config.serverPort}/admin/api`;
     }
     
     /**
@@ -76,7 +70,7 @@ export class EnvironmentConfig {
      */
     static getMainServerURL(): string {
         const config = this.getCurrentConfig();
-        return `${config.protocol}://${config.host}:${config.mainServerPort}`;
+        return `${config.protocol}://${config.host}:${config.serverPort}`;
     }
     
     /**
@@ -84,7 +78,7 @@ export class EnvironmentConfig {
      */
     static getPayProxyURL(): string {
         const config = this.getCurrentConfig();
-        return `${config.protocol}://${config.host}:${config.payProxyPort}`;
+        return `${config.protocol}://${config.host}:${config.serverPort}`;
     }
     
     /**
@@ -92,7 +86,7 @@ export class EnvironmentConfig {
      */
     static getPayProxyAPI(): string {
         const config = this.getCurrentConfig();
-        return `${config.protocol}://${config.host}:${config.payProxyPort}/api`;
+        return `${config.protocol}://${config.host}:${config.serverPort}/api/payment`;
     }
     
     /**
@@ -100,7 +94,7 @@ export class EnvironmentConfig {
      */
     static getCallbackServerURL(): string {
         const config = this.getCurrentConfig();
-        return `${config.protocol}://${config.host}:${config.callbackServerPort}`;
+        return `${config.protocol}://${config.host}:${config.serverPort}`;
     }
     
     /**
@@ -108,7 +102,7 @@ export class EnvironmentConfig {
      */
     static getCallbackServerAPI(): string {
         const config = this.getCurrentConfig();
-        return `${config.protocol}://${config.host}:${config.callbackServerPort}/api`;
+        return `${config.protocol}://${config.host}:${config.serverPort}/api/payment`;
     }
     
     /**
@@ -129,11 +123,7 @@ export class EnvironmentConfig {
             mainServer: this.getMainServerAPI(),
             payProxy: this.getPayProxyAPI(),
             callbackServer: this.getCallbackServerAPI(),
-            ports: {
-                main: config.mainServerPort,
-                payProxy: config.payProxyPort,
-                callback: config.callbackServerPort
-            },
+            port: config.serverPort,
             protocol: config.protocol
         };
     }
