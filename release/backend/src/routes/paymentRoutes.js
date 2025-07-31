@@ -38,7 +38,7 @@ router.get('/get3DResult', (req, res) => {
             <!DOCTYPE html>
             <html>
             <head>
-                <title>支付结果</title>
+                <title>Payment Result</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1">
                 <style>
                     body {
@@ -74,24 +74,82 @@ router.get('/get3DResult', (req, res) => {
             </head>
             <body>
                 <h1 class="${code === 'P0001' ? 'success' : 'failed'}">
-                    ${code === 'P0001' ? '支付成功' : '支付失败'}
+                    ${code === 'P0001' ? 'Payment Successful' : 'Payment Failed'}
                 </h1>
                 <div class="message">
-                    订单号: ${billNo}<br>
-                    ${amount ? `金额: ${amount}<br>` : ''}
-                    ${message ? `消息: ${message}<br>` : ''}
+                    Order ID: ${billNo}<br>
+                    ${amount ? `Amount: ${amount}<br>` : ''}
+                    ${message ? `Message: ${message}<br>` : ''}
                 </div>
-                <p>请关闭此窗口并返回游戏继续。</p>
-                <button class="button" onclick="window.close()">关闭窗口</button>
+                <p>Please close this window and return to the game to continue.</p>
+                <button class="button" onclick="closeWindow()">Close Window</button>
                 <script>
-                    // 5秒后尝试自动关闭窗口
-                    setTimeout(() => {
+                    function closeWindow() {
+                        // Try multiple methods to close the window
                         try {
+                            // Method 1: Direct close
                             window.close();
                         } catch (e) {
-                            console.log('无法自动关闭窗口');
+                            console.log('Method 1 failed:', e);
                         }
-                    }, 5000);
+                        
+                        // Method 2: Delayed close
+                        setTimeout(() => {
+                            try {
+                                window.close();
+                            } catch (e) {
+                                console.log('Method 2 failed:', e);
+                            }
+                        }, 100);
+                        
+                        // Method 3: Go back to previous page
+                        setTimeout(() => {
+                            try {
+                                if (window.history.length > 1) {
+                                    window.history.back();
+                                } else {
+                                    window.location.href = 'about:blank';
+                                }
+                            } catch (e) {
+                                console.log('Method 3 failed:', e);
+                            }
+                        }, 200);
+                        
+                        // Method 4: Redirect to blank page
+                        setTimeout(() => {
+                            try {
+                                window.location.replace('about:blank');
+                            } catch (e) {
+                                console.log('Method 4 failed:', e);
+                            }
+                        }, 300);
+                    }
+                    
+                    // Detect if it's a mobile device
+                    function isMobile() {
+                        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    }
+                    
+                    // Mobile device auto-handling
+                    if (isMobile()) {
+                        // Mobile: auto-close after 3 seconds
+                        setTimeout(() => {
+                            closeWindow();
+                        }, 3000);
+                        
+                        // Mobile: show special message
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const messageDiv = document.querySelector('.message');
+                            if (messageDiv) {
+                                messageDiv.innerHTML += '<br><strong style="color: #ff6b6b;">Mobile users: Please manually return to the game or close this tab</strong>';
+                            }
+                        });
+                    } else {
+                        // PC: auto-close after 5 seconds
+                        setTimeout(() => {
+                            closeWindow();
+                        }, 5000);
+                    }
                 </script>
             </body>
             </html>

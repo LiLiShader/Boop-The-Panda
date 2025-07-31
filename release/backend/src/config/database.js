@@ -2,21 +2,23 @@ const mysql = require('mysql2');
 require('dotenv').config();
 
 // 数据库连接配置
-const dbConfig = {
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || 'password',
-    database: process.env.DB_NAME || 'game_db',
-    port: process.env.DB_PORT || 3306
-};
+   const dbConfig = {
+       host: '127.0.0.1',  // 明确使用IPv4地址，而不是process.env.DB_HOST
+       user: process.env.DB_USER || 'gameuser',
+       password: process.env.DB_PASSWORD || '123456',
+       database: process.env.DB_NAME || 'game_db',
+       port: process.env.DB_PORT || 3306
+   };
 
-// 创建数据库连接池
-const pool = mysql.createPool({
-    ...dbConfig,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-});
+   // 创建数据库连接池
+   const pool = mysql.createPool({
+       ...dbConfig,
+       waitForConnections: true,
+       connectionLimit: 10,
+       queueLimit: 0,
+       socketPath: undefined  // 不使用socket连接
+       // 删除family参数
+   });
 
 // 测试数据库连接
 const testConnection = () => {
