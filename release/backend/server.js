@@ -22,13 +22,24 @@ const PORT = process.env.PORT || 3000;
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'User-Agent', 'X-Requested-With'],
+    credentials: false,
+    preflightContinue: false,
+    optionsSuccessStatus: 204
 }));
-app.options('*', (req, res) => {
+
+// 全局CORS处理
+app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.sendStatus(204);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, User-Agent, X-Requested-With');
+    res.header('Access-Control-Allow-Credentials', 'false');
+    
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(204);
+    } else {
+        next();
+    }
 });
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -44,6 +55,25 @@ app.get('/health', (req, res) => {
         service: 'Boop-The-Panda后端服务',
         environment: process.env.NODE_ENV || 'development',
         timestamp: new Date().toISOString()
+    });
+});
+
+// 简单测试接口
+app.get('/test', (req, res) => {
+    res.json({ 
+        message: 'Backend service is working',
+        timestamp: new Date().toISOString(),
+        headers: req.headers
+    });
+});
+
+// POST测试接口
+app.post('/test', (req, res) => {
+    res.json({ 
+        message: 'POST request received',
+        body: req.body,
+        timestamp: new Date().toISOString(),
+        headers: req.headers
     });
 });
 

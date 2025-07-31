@@ -108,6 +108,7 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
         return new Promise((resolve) => {
             const xhr = new XMLHttpRequest();
             xhr.timeout = 10000; // 10秒超时
+            const apiUrl = this.ACCOUNT_API; // 保存this引用
             
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4) {
@@ -145,7 +146,7 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
                 resolve(false);
             };
             
-            xhr.open('POST', `${this.ACCOUNT_API}/users`, true);
+            xhr.open('POST', `${apiUrl}/users`, true);
             xhr.setRequestHeader('Content-Type', 'application/json');
             xhr.setRequestHeader('Accept', 'application/json');
             xhr.send(JSON.stringify({ pid, name, password }));
@@ -213,6 +214,8 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
         return new Promise((resolve) => {
             const xhr = new XMLHttpRequest();
             xhr.timeout = 10000; // 10秒超时
+            const apiUrl = this.ACCOUNT_API; // 保存this引用
+            const self = this; // 保存this引用
             
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4) {
@@ -224,11 +227,11 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
                             const result = JSON.parse(xhr.responseText);
                             if (result.success) {
                                 console.log('用户登录成功(XHR):', result.data);
-                                this.isLoggedIn = true;
-                                this.currentUser = result.data;
+                                self.isLoggedIn = true;
+                                self.currentUser = result.data;
                                 
                                 // 保存登录信息
-                                this.saveLoginInfo(pid, password);
+                                self.saveLoginInfo(pid, password);
                                 
                                 resolve(true);
                             } else {
@@ -244,7 +247,7 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
                         resolve(false);
                     }
                 }
-            }.bind(this);
+            };
             
             xhr.ontimeout = function() {
                 console.error('[Login XHR] 请求超时');
@@ -256,7 +259,7 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
                 resolve(false);
             };
             
-            xhr.open('POST', `${this.ACCOUNT_API}/login`, true);
+            xhr.open('POST', `${apiUrl}/login`, true);
             xhr.setRequestHeader('Content-Type', 'application/json');
             xhr.setRequestHeader('Accept', 'application/json');
             xhr.send(JSON.stringify({ pid, password }));
@@ -357,33 +360,60 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
         }
     }
 
-    // 简单网络连接测试（使用图片加载）
+    // 简单网络连接测试
     async testSimpleConnection(): Promise<boolean> {
         return new Promise((resolve) => {
             console.log('[Simple Network] 开始简单连接测试');
             
-            // 使用图片加载测试连接
-            const img = new Image();
-            img.onload = function() {
-                console.log('[Simple Network] 图片加载成功，网络连接正常');
-                resolve(true);
-            };
-            img.onerror = function() {
-                console.log('[Simple Network] 图片加载失败，尝试其他方法');
-                // 如果图片加载失败，尝试直接访问API
-                fetch(`${this.ACCOUNT_API}/health`)
-                    .then(response => {
-                        console.log('[Simple Network] API连接成功');
-                        resolve(true);
-                    })
-                    .catch(error => {
-                        console.error('[Simple Network] API连接失败:', error);
-                        resolve(false);
-                    });
-            }.bind(this);
+            // 直接测试API连接
+            const testUrl = `${this.ACCOUNT_API.replace('/admin/api', '')}/test`;
             
-            // 使用一个简单的图片URL进行测试
-            img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+            // 先尝试fetch
+            fetch(testUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                console.log('[Simple Network] Fetch API连接成功');
+                resolve(true);
+            })
+            .catch(fetchError => {
+                console.log('[Simple Network] Fetch失败，尝试XMLHttpRequest:', fetchError);
+                
+                // 如果fetch失败，尝试XMLHttpRequest
+                const xhr = new XMLHttpRequest();
+                xhr.timeout = 5000;
+                
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            console.log('[Simple Network] XHR API连接成功');
+                            resolve(true);
+                        } else {
+                            console.error('[Simple Network] XHR API连接失败:', xhr.status);
+                            resolve(false);
+                        }
+                    }
+                };
+                
+                xhr.ontimeout = function() {
+                    console.error('[Simple Network] XHR请求超时');
+                    resolve(false);
+                };
+                
+                xhr.onerror = function() {
+                    console.error('[Simple Network] XHR网络错误');
+                    resolve(false);
+                };
+                
+                xhr.open('GET', testUrl, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.setRequestHeader('Accept', 'application/json');
+                xhr.send();
+            });
         });
     }
 }//电子邮件puhalskijsemen@gmail.com

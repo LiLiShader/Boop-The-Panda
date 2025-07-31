@@ -28,7 +28,7 @@ export class EnvironmentConfig {
         },
         [Environment.PRODUCTION]: {
             host: 'thunderousfreeze.com',
-            serverPort: 3000,  // 合并后的统一端口
+            serverPort: 443,  // 合并后的统一端口
             protocol: 'https' 
         }
     };
