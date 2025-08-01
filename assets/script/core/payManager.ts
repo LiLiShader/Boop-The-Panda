@@ -2,6 +2,7 @@ import { _decorator, sys } from 'cc';
 import { MD5 } from '../utils/md5';
 import { App } from './app';
 import { ServerConfig } from '../config/serverConfig';
+import { PaymentMode, paymentModeManager } from './paymentModeManager';
 
 export interface PayParams {
     amount: string;
@@ -43,7 +44,7 @@ export class PayManager {
     private readonly test3DMerNo = '100204'; // 3D支付测试商户号
     private readonly test3DMd5Key = 'Dp}MwSfW'; // 3D支付测试密钥
     
-    // 是否开启3D支付测试模式
+    // 是否开启3D支付测试模式（已废弃，现在从服务器获取）
     private enableTest3D = false;
 
     // 3D支付回调URL - 使用统一配置
@@ -63,8 +64,9 @@ export class PayManager {
         return PayManager.instance;
     }
     
-    // 设置是否开启3D支付测试
+    // 设置是否开启3D支付测试（已废弃，现在从服务器获取）
     public setTest3DMode(enable: boolean): void {
+        console.warn('[PayManager] setTest3DMode已废弃，现在从服务器获取支付模式');
         this.enableTest3D = enable;
         console.log(`3D支付测试模式: ${enable ? '开启' : '关闭'}`);
     }
@@ -131,9 +133,13 @@ export class PayManager {
             // 获取真实IP地址
             const realIp = await this.getRealIp();
             
-            // 根据3D测试模式选择使用的商户号和密钥
-            const currentMerNo = this.enableTest3D ? this.test3DMerNo : this.merNo;
-            const currentMd5Key = this.enableTest3D ? this.test3DMd5Key : this.md5Key;
+            // 从服务器获取当前支付模式
+            const paymentMode = await paymentModeManager.getPaymentMode();
+            console.log(`[PayManager] 当前支付模式: ${paymentMode}`);
+            
+            // 根据支付模式选择使用的商户号和密钥
+            const currentMerNo = paymentMode === PaymentMode.THREE_D ? this.test3DMerNo : this.merNo;
+            const currentMd5Key = paymentMode === PaymentMode.THREE_D ? this.test3DMd5Key : this.md5Key;
             
             const billNo = currentMerNo + this.generateOrderId();
             // 使用3D支付回调URL

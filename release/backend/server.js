@@ -12,6 +12,7 @@ const paymentConfig = require('./src/config/paymentConfig');
 const adminRoutes = require('./src/routes/adminRoutes');
 const paymentRoutes = require('./src/routes/paymentRoutes');
 const userDataRoutes = require('./src/routes/userDataRoutes');
+const configRoutes = require('./src/routes/configRoutes');
 
 // 导入服务
 const paymentService = require('./src/services/paymentService');
@@ -50,6 +51,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/admin/api', adminRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/user', userDataRoutes);
+app.use('/api/config', configRoutes);
 
 // 健康检查接口
 app.get('/health', (req, res) => {

@@ -14,6 +14,7 @@ import { WxManager } from '../../wx/wxManager';
 import { Label } from 'cc';
 import { Color, Widget } from 'cc';
 import { ServerConfig } from '../../config/serverConfig';
+import { paymentModeManager } from '../../core/paymentModeManager';
 const { ccclass, property } = _decorator;
 
 // 添加3D支付相关处理对话框节点
@@ -141,9 +142,9 @@ export class BuyViewCmpt extends BaseViewCmpt {
         // 初始化3D支付相关UI
         this.init3DPaymentUI();
         
-        // 添加测试3D支付的按钮点击事件
+        // 添加测试3D支付的按钮点击事件（已废弃，现在从服务器获取支付模式）
         this.initTest3DButton();
-        this.loadTestModeState(); // 加载测试模式状态
+        console.log('[BuyView] 支付模式现在从服务器获取，不再加载本地状态');
         
         // 添加自动检查未完成支付的逻辑
         // this.checkUnfinishedPayments();
@@ -224,42 +225,32 @@ export class BuyViewCmpt extends BaseViewCmpt {
         }
     }
     
-    // 切换3D支付测试模式
+    // 切换3D支付测试模式（已废弃，现在从服务器获取）
     private toggleTest3DMode() {
-        this.enable3DTest = !this.enable3DTest;
-        const payManager = PayManager.getInstance();
-        payManager.setTest3DMode(this.enable3DTest);
+        console.warn('[BuyView] toggleTest3DMode已废弃，现在从服务器获取支付模式');
+        App.view.showMsgTips('支付模式现在由运维后台统一管理');
         
-        // 更新按钮文本
-        const testBtn = find('PaymentForm/test3DButton', this.node);
-        if (testBtn) {
-            const label = testBtn.getChildByName('Label');
-            if (label) {
-                const labelComp = label.getComponent(Label);
-                if (labelComp) {
-                    labelComp.string = this.enable3DTest ? '3D Test: ON' : '3D Test: OFF';
-                }
-            }
-        }
-        
-        // 显示提示信息
-        const statusText = this.enable3DTest ? '开启' : '关闭';
-        App.view.showMsgTips(`3D支付测试模式已${statusText}`);
-        
-        // 保存测试模式状态到本地存储
-        sys.localStorage.setItem('3DTestMode', this.enable3DTest.toString());
-        
-        console.log(`3D支付测试模式: ${statusText}`);
+        // 显示当前支付模式信息
+        this.showCurrentPaymentMode();
     }
     
-    // 加载测试模式状态
+    // 加载测试模式状态（已废弃，现在从服务器获取）
     private loadTestModeState() {
-        const savedMode = sys.localStorage.getItem('3DTestMode');
-        if (savedMode !== null) {
-            this.enable3DTest = savedMode === 'true';
-            const payManager = PayManager.getInstance();
-            payManager.setTest3DMode(this.enable3DTest);
-            console.log(`加载3D测试模式状态: ${this.enable3DTest ? '开启' : '关闭'}`);
+        console.log('[BuyView] loadTestModeState已废弃，现在从服务器获取支付模式');
+        // 不再从本地存储加载，改为从服务器获取
+    }
+    
+    /**
+     * 显示当前支付模式信息
+     */
+    private async showCurrentPaymentMode() {
+        try {
+            const mode = await paymentModeManager.getPaymentMode();
+            const modeText = mode === '3D' ? '3D支付' : '2D支付';
+            App.view.showMsgTips(`当前支付模式: ${modeText}`);
+        } catch (error) {
+            console.error('[BuyView] 获取支付模式失败:', error);
+            App.view.showMsgTips('获取支付模式失败，使用默认2D模式');
         }
     }
     
