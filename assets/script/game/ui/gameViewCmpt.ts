@@ -15,6 +15,7 @@ import { gridManagerCmpt } from './gridManagerCmpt';
 import { gridCmpt } from './item/gridCmpt';
 import { rocketCmpt } from './item/rocketCmpt';
 import { randomAd } from "../../utils/randomAdManager";
+import { ServerConfig } from "../../config/serverConfig";
 const { ccclass, property } = _decorator;
 
 @ccclass('gameViewCmpt')
@@ -1389,6 +1390,9 @@ export class GameViewCmpt extends BaseViewCmpt {
             this.updateToolsInfo();
             // 显示提示信息
             App.view.showMsgTips("Purchase successful! +1 prop");
+            
+            // 同步金币数据到服务器
+            this.syncGoldDataToServer();
         } else {
             // 金币不足，显示提示
             App.view.showMsgTips("Insufficient coins");
@@ -1676,5 +1680,84 @@ export class GameViewCmpt extends BaseViewCmpt {
         let hintType = GameViewCmpt.HINT_TOOL_TYPE;
         let hintCount = GlobalFuncHelper.getBomb(hintType);
         await this.findHintMove();
+    }
+    
+    /**
+     * 同步金币数据到服务器
+     */
+    private syncGoldDataToServer() {
+        try {
+            // 检查数据同步管理器是否可用
+            if (window['dataSyncManager']) {
+                console.log('[GameView] 开始同步金币数据到服务器');
+                window['dataSyncManager'].forceSyncAllData().then(success => {
+                    if (success) {
+                        console.log('[GameView] 金币数据同步成功');
+                    } else {
+                        console.error('[GameView] 金币数据同步失败');
+                    }
+                }).catch(error => {
+                    console.error('[GameView] 金币数据同步异常:', error);
+                });
+            } else {
+                console.warn('[GameView] 数据同步管理器未初始化，尝试手动同步');
+                this.manualSyncGoldData();
+            }
+        } catch (error) {
+            console.error('[GameView] 同步金币数据失败:', error);
+            // 如果数据同步管理器不可用，尝试手动同步
+            this.manualSyncGoldData();
+        }
+    }
+    
+    /**
+     * 手动同步金币数据到服务器
+     */
+    private manualSyncGoldData() {
+        try {
+            // 获取当前用户信息
+            const user = (typeof App !== 'undefined' && App.user && App.user.currentUser);
+            if (!user || !user.id) {
+                console.warn('[GameView] 用户未登录，跳过金币同步');
+                return;
+            }
+            
+            // 获取当前金币数量
+            const currentGold = GlobalFuncHelper.getGold();
+            
+            // 构造同步数据
+            const syncData = {
+                userId: user.id,
+                data: [
+                    {
+                        key: 'Gold',
+                        value: currentGold.toString(),
+                        type: 'string'
+                    }
+                ]
+            };
+            
+            console.log('[GameView] 准备同步金币数据:', syncData);
+            
+            // 调用后端同步API
+            fetch(ServerConfig.getMainServerURL() + '/api/user/sync-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(syncData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('[GameView] 金币数据同步成功');
+                } else {
+                    console.error('[GameView] 金币数据同步失败:', data.message);
+                }
+            })
+            .catch(err => {
+                console.error('[GameView] 金币数据同步异常:', err);
+            });
+        } catch (error) {
+            console.error('[GameView] 手动同步金币数据失败:', error);
+        }
     }
 }
