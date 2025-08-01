@@ -17,6 +17,7 @@ import { ResLoadHelper } from "../utils/resLoadHelper";
 import { ViewName } from "../const/viewNameConst";
 import { randomAd } from "../utils/randomAdManager";
 import { EnvironmentConfig } from "../config/environment";
+import { DataSyncManager } from "./dataSyncManager";
 /**
  * App管理
  */
@@ -63,8 +64,11 @@ class GameApp extends SingletonClass<GameApp> {
         // 延迟初始化，避免循环依赖
         setTimeout(() => {
             try {
-                // 暂时跳过，避免循环依赖问题
-                console.log('[App] 数据同步管理器初始化跳过');
+                // 初始化数据同步管理器
+                const dataSyncManager = DataSyncManager.getInstance();
+                // 设置全局变量，供其他模块使用
+                (window as any)['dataSyncManager'] = dataSyncManager;
+                console.log('[App] 数据同步管理器初始化成功');
             } catch (error) {
                 console.error('[App] 初始化数据同步管理器失败:', error);
             }

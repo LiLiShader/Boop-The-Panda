@@ -1,4 +1,5 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../../config.env') });
 
 // 支付服务配置
 const paymentConfig = {

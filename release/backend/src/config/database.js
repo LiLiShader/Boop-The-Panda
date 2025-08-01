@@ -1,5 +1,6 @@
 const mysql = require('mysql2');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../../config.env') });
 
 // 数据库连接配置
    const dbConfig = {
@@ -12,12 +13,14 @@ require('dotenv').config();
 
    // 创建数据库连接池
    const pool = mysql.createPool({
-       ...dbConfig,
+       host: dbConfig.host,
+       user: dbConfig.user,
+       password: dbConfig.password,
+       database: dbConfig.database,
+       port: dbConfig.port,
        waitForConnections: true,
        connectionLimit: 10,
-       queueLimit: 0,
-       socketPath: undefined  // 不使用socket连接
-       // 删除family参数
+       queueLimit: 0
    });
 
 // 测试数据库连接

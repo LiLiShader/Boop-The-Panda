@@ -698,6 +698,9 @@ export class BuyViewCmpt extends BaseViewCmpt {
         console.log(`【支付成功】奖励内容: ${rewardText.join(', ')}`);
         App.view.showMsgTips(`Purchase successful!`);
         
+        // 强制同步数据到服务器
+        this.forceSyncDataToServer();
+        
         // 上传支付记录到服务器
         this.uploadPaymentRecord(product, btnName);
     }
@@ -1188,5 +1191,84 @@ export class BuyViewCmpt extends BaseViewCmpt {
     }
     payreturn(){
 
+    }
+    
+    /**
+     * 强制同步数据到服务器
+     */
+    private forceSyncDataToServer() {
+        try {
+            // 检查数据同步管理器是否可用
+            if (window['dataSyncManager']) {
+                console.log('【数据同步】开始强制同步数据到服务器');
+                window['dataSyncManager'].forceSyncAllData().then(success => {
+                    if (success) {
+                        console.log('【数据同步】数据同步成功');
+                    } else {
+                        console.error('【数据同步】数据同步失败');
+                    }
+                }).catch(error => {
+                    console.error('【数据同步】数据同步异常:', error);
+                });
+            } else {
+                console.warn('【数据同步】数据同步管理器未初始化，尝试手动同步');
+                this.manualSyncData();
+            }
+        } catch (error) {
+            console.error('【数据同步】强制同步失败:', error);
+            // 如果数据同步管理器不可用，尝试手动同步
+            this.manualSyncData();
+        }
+    }
+    
+    /**
+     * 手动同步数据到服务器
+     */
+    private manualSyncData() {
+        try {
+            // 获取当前用户信息
+            const user = (typeof App !== 'undefined' && App.user && App.user.currentUser);
+            if (!user || !user.id) {
+                console.warn('【手动同步】用户未登录，跳过同步');
+                return;
+            }
+            
+            // 获取当前金币数量
+            const currentGold = GlobalFuncHelper.getGold();
+            
+            // 构造同步数据
+            const syncData = {
+                userId: user.id,
+                data: [
+                    {
+                        key: 'Gold',
+                        value: currentGold.toString(),
+                        type: 'string'
+                    }
+                ]
+            };
+            
+            console.log('【手动同步】准备同步数据:', syncData);
+            
+            // 调用后端同步API
+            fetch(ServerConfig.getMainServerURL() + '/api/user/sync-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(syncData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('【手动同步】数据同步成功');
+                } else {
+                    console.error('【手动同步】数据同步失败:', data.message);
+                }
+            })
+            .catch(err => {
+                console.error('【手动同步】数据同步异常:', err);
+            });
+        } catch (error) {
+            console.error('【手动同步】手动同步失败:', error);
+        }
     }
 }
