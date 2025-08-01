@@ -4,12 +4,26 @@ const SERVER_HOST = '119.91.142.92';
 const MAIN_SERVER_PORT = 3000; // 修正：后端服务运行在3000端口
 const PROTOCOL = 'http';
 
-const API_BASE_URL = `${PROTOCOL}://${SERVER_HOST}:${MAIN_SERVER_PORT}/api`;
+const API_BASE_URL = `${PROTOCOL}://${SERVER_HOST}:${MAIN_SERVER_PORT}`;
 
 // 全局变量
 let currentOrders = []; // 存储当前查询到的订单列表
 
-// DOM元素
+// 全局变量
+let currentAdmin = null; // 当前登录的管理员信息
+
+// 登录界面DOM元素
+const loginContainer = document.getElementById('login-container');
+const mainContainer = document.getElementById('main-container');
+const loginForm = document.getElementById('login-form');
+const adminPidInput = document.getElementById('admin-pid');
+const adminPasswordInput = document.getElementById('admin-password');
+const loginBtn = document.getElementById('login-btn');
+const loginMessage = document.getElementById('login-message');
+const adminNameSpan = document.getElementById('admin-name');
+const logoutBtn = document.getElementById('logout-btn');
+
+// 主界面DOM元素
 const userIdInput = document.getElementById('user-id');
 const billNoInput = document.getElementById('order-no');
 const startTimeInput = document.getElementById('start-time');
@@ -34,6 +48,15 @@ const modeDescription = document.getElementById('mode-description');
 
 // 事件监听
 document.addEventListener('DOMContentLoaded', () => {
+    // 检查是否已登录
+    checkLoginStatus();
+    
+    // 登录表单提交事件
+    loginForm.addEventListener('submit', handleLogin);
+    
+    // 退出登录事件
+    logoutBtn.addEventListener('click', handleLogout);
+    
     // 初始化时间选择器默认值
     initDateTimeInputs();
     
@@ -85,6 +108,124 @@ function initDateTimeInputs() {
     endTimeInput.value = formatDateForInput(now);
 }
 
+// ==================== 登录管理功能 ====================
+
+// 检查登录状态
+function checkLoginStatus() {
+    const savedAdmin = localStorage.getItem('adminInfo');
+    if (savedAdmin) {
+        try {
+            currentAdmin = JSON.parse(savedAdmin);
+            // 检查登录是否过期（24小时）
+            const loginTime = new Date(currentAdmin.loginTime);
+            const now = new Date();
+            const hoursDiff = (now - loginTime) / (1000 * 60 * 60);
+            
+            if (hoursDiff < 24) {
+                showMainInterface();
+                return;
+            } else {
+                // 登录已过期
+                localStorage.removeItem('adminInfo');
+                currentAdmin = null;
+            }
+        } catch (error) {
+            console.error('解析保存的管理员信息失败:', error);
+            localStorage.removeItem('adminInfo');
+        }
+    }
+    
+    showLoginInterface();
+}
+
+// 显示登录界面
+function showLoginInterface() {
+    loginContainer.style.display = 'flex';
+    mainContainer.style.display = 'none';
+}
+
+// 显示主界面
+function showMainInterface() {
+    loginContainer.style.display = 'none';
+    mainContainer.style.display = 'block';
+    
+    // 更新管理员信息显示
+    if (currentAdmin) {
+        adminNameSpan.textContent = `${currentAdmin.name} (${currentAdmin.pid})`;
+    }
+}
+
+// 处理登录
+async function handleLogin(e) {
+    e.preventDefault();
+    
+    const pid = adminPidInput.value.trim();
+    const password = adminPasswordInput.value.trim();
+    
+    if (!pid || !password) {
+        showLoginMessage('请填写完整信息', 'error');
+        return;
+    }
+    
+    try {
+        // 禁用登录按钮
+        loginBtn.disabled = true;
+        loginBtn.textContent = '登录中...';
+        
+        const response = await fetch(`${API_BASE_URL}/admin/api/admin/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ pid, password })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // 登录成功
+            currentAdmin = result.data;
+            localStorage.setItem('adminInfo', JSON.stringify(currentAdmin));
+            
+            showLoginMessage('登录成功，正在跳转...', 'success');
+            
+            // 延迟跳转到主界面
+            setTimeout(() => {
+                showMainInterface();
+            }, 1000);
+        } else {
+            showLoginMessage(result.message || '登录失败', 'error');
+        }
+    } catch (error) {
+        console.error('登录请求失败:', error);
+        showLoginMessage('网络错误，请重试', 'error');
+    } finally {
+        // 恢复登录按钮
+        loginBtn.disabled = false;
+        loginBtn.textContent = '登录';
+    }
+}
+
+// 处理退出登录
+function handleLogout() {
+    if (confirm('确定要退出登录吗？')) {
+        currentAdmin = null;
+        localStorage.removeItem('adminInfo');
+        showLoginInterface();
+        
+        // 清空表单
+        adminPidInput.value = '';
+        adminPasswordInput.value = '';
+        loginMessage.innerHTML = '';
+    }
+}
+
+// 显示登录消息
+function showLoginMessage(message, type = 'info') {
+    loginMessage.textContent = message;
+    loginMessage.className = `login-message ${type}`;
+}
+
 // 格式化日期为datetime-local输入格式
 function formatDateForInput(date) {
     return date.toISOString().slice(0, 16);
@@ -107,7 +248,7 @@ async function loadCurrentPaymentMode() {
     try {
         showPaymentModeLoading();
         
-        const response = await fetch(`${API_BASE_URL}/config/payment/mode`);
+        const response = await fetch(`${API_BASE_URL}/api/config/payment/mode`);
         const result = await response.json();
         
         if (result.success) {
@@ -128,7 +269,7 @@ async function switchPaymentMode(targetMode) {
         // 禁用按钮，防止重复点击
         setPaymentModeButtonsEnabled(false);
         
-        const response = await fetch(`${API_BASE_URL}/config/payment/mode`, {
+        const response = await fetch(`${API_BASE_URL}/api/config/payment/mode`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -476,7 +617,7 @@ function getOrderItemName(order) {
 // 获取用户信息
 async function fetchUserInfo(userId) {
     try {
-        const response = await fetch(`${API_BASE_URL}/users/${userId}`);
+        const response = await fetch(`${API_BASE_URL}/admin/api/users/${userId}`);
         
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -493,7 +634,7 @@ async function fetchUserInfo(userId) {
 // 获取用户订单
 async function fetchUserOrders(userId) {
     try {
-        const response = await fetch(`${API_BASE_URL}/payments/user/${userId}`);
+        const response = await fetch(`${API_BASE_URL}/admin/api/payments/user/${userId}`);
         
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -510,7 +651,7 @@ async function fetchUserOrders(userId) {
 // 获取所有订单
 async function fetchAllOrders() {
     try {
-        const response = await fetch(`${API_BASE_URL}/payments/all`);
+        const response = await fetch(`${API_BASE_URL}/admin/api/payments`);
         
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);

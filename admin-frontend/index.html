@@ -7,9 +7,49 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
+    <!-- 登录界面 -->
+    <div id="login-container" class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <h1>🔐 管理员登录</h1>
+                <p>请输入管理员账号和密码</p>
+            </div>
+            
+            <form id="login-form" class="login-form">
+                <div class="form-group">
+                    <label for="admin-pid">管理员ID:</label>
+                    <input type="text" id="admin-pid" name="pid" placeholder="请输入管理员ID" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="admin-password">密码:</label>
+                    <input type="password" id="admin-password" name="password" placeholder="请输入密码" required>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" id="login-btn" class="login-btn">登录</button>
+                </div>
+                
+                <div id="login-message" class="login-message"></div>
+            </form>
+            
+            <div class="login-footer">
+                <p>默认管理员账号：admin001</p>
+                <p>默认密码：admin123456</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 主界面 -->
+    <div id="main-container" class="container" style="display: none;">
         <header>
-            <h1>游戏运维管理系统</h1>
+            <div class="header-content">
+                <h1>游戏运维管理系统</h1>
+                <div class="admin-info">
+                    <span id="admin-name">管理员</span>
+                    <button id="logout-btn" class="logout-btn">退出登录</button>
+                </div>
+            </div>
         </header>
         
         <div class="main-content">
