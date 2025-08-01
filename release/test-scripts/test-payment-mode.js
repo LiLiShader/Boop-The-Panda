@@ -10,19 +10,36 @@ const mockServerResponse = {
     }
 };
 
-// 模拟fetch函数
-global.fetch = async (url) => {
-    console.log(`[Mock] 请求URL: ${url}`);
-    
-    if (url.includes('/api/config/payment/mode')) {
-        return {
-            ok: true,
-            json: async () => mockServerResponse
-        };
-    }
-    
-    throw new Error('未知的API请求');
-};
+// 模拟fetch函数（浏览器环境兼容）
+if (typeof window !== 'undefined') {
+    // 浏览器环境
+    window.mockFetch = async (url) => {
+        console.log(`[Mock] 请求URL: ${url}`);
+        
+        if (url.includes('/api/config/payment/mode')) {
+            return {
+                ok: true,
+                json: async () => mockServerResponse
+            };
+        }
+        
+        throw new Error('未知的API请求');
+    };
+} else {
+    // Node.js环境
+    global.fetch = async (url) => {
+        console.log(`[Mock] 请求URL: ${url}`);
+        
+        if (url.includes('/api/config/payment/mode')) {
+            return {
+                ok: true,
+                json: async () => mockServerResponse
+            };
+        }
+        
+        throw new Error('未知的API请求');
+    };
+}
 
 // 测试支付模式枚举
 console.log('1. 测试支付模式枚举:');
