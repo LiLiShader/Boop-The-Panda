@@ -306,6 +306,127 @@ footer {
     margin-bottom: 8px;
 }
 
+/* 支付模式管理样式 */
+.payment-mode-container {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.payment-mode-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.mode-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background-color: white;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+.status-label {
+    font-weight: bold;
+    color: #495057;
+}
+
+.mode-value {
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.mode-value.mode-2d {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.mode-value.mode-3d {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.mode-value.loading {
+    background-color: #e2e3e5;
+    color: #6c757d;
+    border: 1px solid #d6d8db;
+}
+
+.mode-switch {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.mode-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.mode-btn.switch-2d {
+    background-color: #28a745;
+    color: white;
+}
+
+.mode-btn.switch-2d:hover:not(:disabled) {
+    background-color: #218838;
+}
+
+.mode-btn.switch-3d {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.mode-btn.switch-3d:hover:not(:disabled) {
+    background-color: #e0a800;
+}
+
+.mode-btn:disabled {
+    background-color: #6c757d;
+    color: #adb5bd;
+    cursor: not-allowed;
+}
+
+.mode-description {
+    padding: 10px;
+    background-color: white;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+.mode-description p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* 响应式设计 */
+@media (max-width: 767px) {
+    .mode-switch {
+        flex-direction: column;
+    }
+    
+    .mode-btn {
+        min-width: auto;
+    }
+}
+
 /* 响应式设计 */
 @media (min-width: 768px) {
     .main-content {

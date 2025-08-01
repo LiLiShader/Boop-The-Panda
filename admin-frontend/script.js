@@ -1,7 +1,7 @@
 // 配置API基础URL
 // 服务器配置
 const SERVER_HOST = '119.91.142.92';
-const MAIN_SERVER_PORT = 3001;
+const MAIN_SERVER_PORT = 3000; // 修正：后端服务运行在3000端口
 const PROTOCOL = 'http';
 
 const API_BASE_URL = `${PROTOCOL}://${SERVER_HOST}:${MAIN_SERVER_PORT}/api`;
@@ -26,10 +26,19 @@ const orderDetailModal = document.getElementById('order-detail-modal');
 const orderDetailContent = document.getElementById('order-detail-content');
 const closeModalBtn = document.querySelector('.close-modal');
 
+// 支付模式管理DOM元素
+const currentPaymentMode = document.getElementById('current-payment-mode');
+const switchTo2dBtn = document.getElementById('switch-to-2d-btn');
+const switchTo3dBtn = document.getElementById('switch-to-3d-btn');
+const modeDescription = document.getElementById('mode-description');
+
 // 事件监听
 document.addEventListener('DOMContentLoaded', () => {
     // 初始化时间选择器默认值
     initDateTimeInputs();
+    
+    // 初始化支付模式管理
+    initPaymentModeManagement();
     
     // 查询按钮点击事件
     queryUserBtn.addEventListener('click', onQueryUser);
@@ -39,6 +48,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 导出Excel按钮点击事件
     exportExcelBtn.addEventListener('click', onExportExcel);
+    
+    // 支付模式切换按钮点击事件
+    switchTo2dBtn.addEventListener('click', () => switchPaymentMode('2D'));
+    switchTo3dBtn.addEventListener('click', () => switchPaymentMode('3D'));
     
     // 关闭模态框
     closeModalBtn.addEventListener('click', closeModal);
@@ -75,6 +88,142 @@ function initDateTimeInputs() {
 // 格式化日期为datetime-local输入格式
 function formatDateForInput(date) {
     return date.toISOString().slice(0, 16);
+}
+
+// ==================== 支付模式管理功能 ====================
+
+// 初始化支付模式管理
+async function initPaymentModeManagement() {
+    try {
+        await loadCurrentPaymentMode();
+    } catch (error) {
+        console.error('初始化支付模式管理失败:', error);
+        showPaymentModeError('初始化失败，请刷新页面重试');
+    }
+}
+
+// 加载当前支付模式
+async function loadCurrentPaymentMode() {
+    try {
+        showPaymentModeLoading();
+        
+        const response = await fetch(`${API_BASE_URL}/config/payment/mode`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const mode = result.data.mode;
+            updatePaymentModeDisplay(mode);
+        } else {
+            throw new Error(result.message || '获取支付模式失败');
+        }
+    } catch (error) {
+        console.error('获取支付模式失败:', error);
+        showPaymentModeError('获取支付模式失败: ' + error.message);
+    }
+}
+
+// 切换支付模式
+async function switchPaymentMode(targetMode) {
+    try {
+        // 禁用按钮，防止重复点击
+        setPaymentModeButtonsEnabled(false);
+        
+        const response = await fetch(`${API_BASE_URL}/config/payment/mode`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ mode: targetMode })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            updatePaymentModeDisplay(targetMode);
+            showPaymentModeSuccess(`支付模式已成功切换到${targetMode}模式`);
+        } else {
+            throw new Error(result.message || '切换支付模式失败');
+        }
+    } catch (error) {
+        console.error('切换支付模式失败:', error);
+        showPaymentModeError('切换支付模式失败: ' + error.message);
+    } finally {
+        // 重新启用按钮
+        setPaymentModeButtonsEnabled(true);
+    }
+}
+
+// 更新支付模式显示
+function updatePaymentModeDisplay(mode) {
+    // 更新当前模式显示
+    currentPaymentMode.textContent = mode;
+    currentPaymentMode.className = `mode-value mode-${mode.toLowerCase()}`;
+    
+    // 更新按钮状态
+    updatePaymentModeButtons(mode);
+    
+    // 更新描述信息
+    updatePaymentModeDescription(mode);
+}
+
+// 更新支付模式按钮状态
+function updatePaymentModeButtons(currentMode) {
+    if (currentMode === '2D') {
+        switchTo2dBtn.disabled = true;
+        switchTo2dBtn.textContent = '当前为2D模式';
+        switchTo3dBtn.disabled = false;
+        switchTo3dBtn.textContent = '切换到3D支付';
+    } else {
+        switchTo2dBtn.disabled = false;
+        switchTo2dBtn.textContent = '切换到2D支付';
+        switchTo3dBtn.disabled = true;
+        switchTo3dBtn.textContent = '当前为3D模式';
+    }
+}
+
+// 更新支付模式描述
+function updatePaymentModeDescription(mode) {
+    const descriptions = {
+        '2D': '2D支付模式：使用标准支付流程，适用于大多数用户。支付时无需额外的身份验证步骤。',
+        '3D': '3D支付模式：使用3D Secure验证，提供更高的安全性。支付时可能需要额外的身份验证步骤。'
+    };
+    
+    modeDescription.textContent = descriptions[mode] || '未知支付模式';
+}
+
+// 显示支付模式加载状态
+function showPaymentModeLoading() {
+    currentPaymentMode.textContent = '加载中...';
+    currentPaymentMode.className = 'mode-value loading';
+    modeDescription.textContent = '正在获取支付模式信息...';
+    setPaymentModeButtonsEnabled(false);
+}
+
+// 显示支付模式错误
+function showPaymentModeError(message) {
+    currentPaymentMode.textContent = '获取失败';
+    currentPaymentMode.className = 'mode-value loading';
+    modeDescription.textContent = message;
+    setPaymentModeButtonsEnabled(false);
+}
+
+// 显示支付模式成功消息
+function showPaymentModeSuccess(message) {
+    // 临时显示成功消息
+    const originalText = modeDescription.textContent;
+    modeDescription.textContent = message;
+    
+    // 3秒后恢复原描述
+    setTimeout(() => {
+        const currentMode = currentPaymentMode.textContent;
+        updatePaymentModeDescription(currentMode);
+    }, 3000);
+}
+
+// 设置支付模式按钮启用状态
+function setPaymentModeButtonsEnabled(enabled) {
+    switchTo2dBtn.disabled = !enabled;
+    switchTo3dBtn.disabled = !enabled;
 }
 
 // 查询用户信息

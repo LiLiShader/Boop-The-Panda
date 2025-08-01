@@ -56,6 +56,26 @@
                         <p class="empty-message">请输入用户ID进行查询</p>
                     </div>
                 </div>
+                
+                <!-- 支付模式管理区域 -->
+                <div class="payment-mode-container" id="payment-mode-section">
+                    <h3>支付模式管理</h3>
+                    <div id="payment-mode-info" class="info-display">
+                        <div class="payment-mode-controls">
+                            <div class="mode-status">
+                                <span class="status-label">当前模式:</span>
+                                <span id="current-payment-mode" class="mode-value">加载中...</span>
+                            </div>
+                            <div class="mode-switch">
+                                <button id="switch-to-2d-btn" class="mode-btn" disabled>切换到2D支付</button>
+                                <button id="switch-to-3d-btn" class="mode-btn" disabled>切换到3D支付</button>
+                            </div>
+                            <div class="mode-description">
+                                <p id="mode-description">支付模式说明加载中...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- 订单列表区域 -->
