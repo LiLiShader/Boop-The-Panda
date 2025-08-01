@@ -37,7 +37,8 @@ router.post('/login', async (req, res) => {
         }
         
         const user = results[0];
-        console.log('[Login] 登录成功:', { pid, name: user.name });
+        console.log('[Login] 登录成功:', { pid, name: user.name, gold: user.gold });
+        
         res.json({
             success: true,
             message: '登录成功',

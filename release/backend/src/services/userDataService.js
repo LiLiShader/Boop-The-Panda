@@ -12,8 +12,16 @@ class UserDataService {
         try {
             await connection.beginTransaction();
 
+            // 用于更新users表的gold字段
+            let newGold = null;
+            
             for (const data of dataArray) {
                 const { key, value, type = 'string' } = data;
+                
+                // 如果是金币数据，记录下来用于更新users表
+                if (key === 'Gold') {
+                    newGold = parseInt(value);
+                }
                 
                 // 使用 ON DUPLICATE KEY UPDATE 来处理重复数据
                 const query = `
@@ -28,11 +36,20 @@ class UserDataService {
                 await connection.execute(query, [userId, key, value, type]);
             }
 
-            // 更新用户的最后同步时间
-            await connection.execute(
-                'UPDATE users SET last_sync_time = CURRENT_TIMESTAMP WHERE id = ?',
-                [userId]
-            );
+            // 如果更新了金币数据，同时更新users表的gold字段
+            if (newGold !== null) {
+                console.log(`[UserDataService] 更新用户 ${userId} 的gold字段: ${newGold}`);
+                await connection.execute(
+                    'UPDATE users SET gold = ?, last_sync_time = CURRENT_TIMESTAMP WHERE id = ?',
+                    [newGold, userId]
+                );
+            } else {
+                // 更新用户的最后同步时间
+                await connection.execute(
+                    'UPDATE users SET last_sync_time = CURRENT_TIMESTAMP WHERE id = ?',
+                    [userId]
+                );
+            }
 
             await connection.commit();
             return true;
