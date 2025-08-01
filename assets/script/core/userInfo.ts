@@ -267,7 +267,7 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
     }
 
     // 同步用户数据到本地
-    private syncUserData(userData: any) {
+    private async syncUserData(userData: any) {
         // 更新用户信息
         this.rankData.name = userData.name;
         this.rankData.gold = userData.gold;
@@ -280,6 +280,55 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
         
         // 触发UI更新
         App.event.emit(EventName.Game.UpdataGold);
+        
+        // 初始化数据同步管理器
+        await this.initDataSyncManager();
+        
+        // 从服务器获取用户游戏数据
+        await this.fetchUserGameData();
+    }
+    
+    /**
+     * 初始化数据同步管理器
+     */
+    private async initDataSyncManager() {
+        // 暂时跳过，避免循环依赖问题
+        console.log('[UserInfo] 数据同步管理器初始化跳过');
+    }
+    
+    /**
+     * 从服务器获取用户游戏数据
+     */
+    private async fetchUserGameData() {
+        try {
+            if (window['dataSyncManager']) {
+                const success = await window['dataSyncManager'].fetchUserData();
+                if (success) {
+                    console.log('[UserInfo] 从服务器获取游戏数据成功');
+                } else {
+                    console.log('[UserInfo] 从服务器获取游戏数据失败，尝试初始化默认数据');
+                    await this.initializeUserGameData();
+                }
+            }
+        } catch (error) {
+            console.error('[UserInfo] 获取用户游戏数据失败:', error);
+        }
+    }
+    
+    /**
+     * 初始化用户游戏数据
+     */
+    private async initializeUserGameData() {
+        try {
+            if (window['dataSyncManager']) {
+                const success = await window['dataSyncManager'].initializeUserData();
+                if (success) {
+                    console.log('[UserInfo] 用户游戏数据初始化成功');
+                }
+            }
+        } catch (error) {
+            console.error('[UserInfo] 初始化用户游戏数据失败:', error);
+        }
     }
 
     // 保存登录信息到本地

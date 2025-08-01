@@ -51,6 +51,24 @@ class GameApp extends SingletonClass<GameApp> {
         
         // 初始化随机广告管理器
         randomAd.init();
+        
+        // 初始化数据同步管理器
+        this.initDataSyncManager();
+    }
+    
+    /**
+     * 初始化数据同步管理器
+     */
+    private initDataSyncManager() {
+        // 延迟初始化，避免循环依赖
+        setTimeout(() => {
+            try {
+                // 暂时跳过，避免循环依赖问题
+                console.log('[App] 数据同步管理器初始化跳过');
+            } catch (error) {
+                console.error('[App] 初始化数据同步管理器失败:', error);
+            }
+        }, 1000);
     }
 
     addEvent() {

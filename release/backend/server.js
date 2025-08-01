@@ -10,6 +10,7 @@ const paymentConfig = require('./src/config/paymentConfig');
 // 导入路由
 const adminRoutes = require('./src/routes/adminRoutes');
 const paymentRoutes = require('./src/routes/paymentRoutes');
+const userDataRoutes = require('./src/routes/userDataRoutes');
 
 // 导入服务
 const paymentService = require('./src/services/paymentService');
@@ -47,6 +48,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // API路由
 app.use('/admin/api', adminRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/user', userDataRoutes);
 
 // 健康检查接口
 app.get('/health', (req, res) => {
@@ -117,6 +119,14 @@ const startServer = async () => {
             console.log('- GET /api/payment/get3DResult: 3D支付回调');
             console.log('- GET /api/payment/status/:billNo: 查询支付状态');
             console.log('- POST /api/payment/record: 添加支付记录');
+            console.log('');
+            console.log('用户数据同步API:');
+            console.log('- POST /api/user/sync-data: 同步用户游戏数据');
+            console.log('- GET /api/user/get-game-data: 获取用户游戏数据');
+            console.log('- GET /api/user/get-game-data/:key: 获取特定游戏数据');
+            console.log('- DELETE /api/user/delete-game-data/:key: 删除特定游戏数据');
+            console.log('- POST /api/user/init-game-data: 初始化用户游戏数据');
+            console.log('- GET /api/user/sync-status: 获取同步状态');
             console.log('');
             console.log('其他API:');
             console.log('- GET /health: 健康检查');

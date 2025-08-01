@@ -192,6 +192,30 @@ class Helper {
             data = dataStr;
         }
         sys.localStorage.setItem(key, data);
+        
+        // 添加到数据同步队列
+        this.addToSyncQueue(key, data);
+    }
+    
+    /**
+     * 添加数据到同步队列
+     */
+    private addToSyncQueue(key: string, value: any) {
+        // 使用全局变量来避免循环依赖
+        if (window['dataSyncManager'] && App.user.isLoggedIn) {
+            let type: 'string' | 'number' | 'boolean' | 'json' = 'string';
+            
+            // 根据值类型判断数据类型
+            if (typeof value === 'number') {
+                type = 'number';
+            } else if (typeof value === 'boolean') {
+                type = 'boolean';
+            } else if (typeof value === 'object') {
+                type = 'json';
+            }
+            
+            window['dataSyncManager'].addToSyncQueue(key, value, type);
+        }
     }
 }
 

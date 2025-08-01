@@ -73,12 +73,41 @@ const initializeTables = async () => {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `;
 
+    // 创建用户游戏数据表的SQL
+    const createUserGameDataTableSQL = `
+    CREATE TABLE IF NOT EXISTS user_game_data (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        user_id INT NOT NULL,
+        data_key VARCHAR(100) NOT NULL,
+        data_value TEXT,
+        data_type ENUM('string', 'number', 'boolean', 'json') DEFAULT 'string',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_user_data (user_id, data_key),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        INDEX idx_user_id (user_id),
+        INDEX idx_data_key (data_key),
+        INDEX idx_updated_at (updated_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `;
+
+    // 为用户表添加最后同步时间字段
+    const alterUsersTableSQL = `
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS last_sync_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+    `;
+
     try {
         await pool.promise().query(createUsersTableSQL);
         console.log('用户表初始化成功');
         
         await pool.promise().query(createPaymentRecordsTableSQL);
         console.log('支付记录表初始化成功');
+        
+        await pool.promise().query(createUserGameDataTableSQL);
+        console.log('用户游戏数据表初始化成功');
+        
+        await pool.promise().query(alterUsersTableSQL);
+        console.log('用户表字段更新成功');
         
         return true;
     } catch (error) {
