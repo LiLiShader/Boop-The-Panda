@@ -8,6 +8,7 @@ import { ServerConfig } from '../../config/serverConfig';
 import { CocosHelper } from '../../utils/cocosHelper';
 import { GlobalFuncHelper } from '../../utils/globalFuncHelper';
 import { StorageHelper, StorageHelperKey } from '../../utils/storageHelper';
+import { ToolsHelper } from '../../utils/toolsHelper';
 import { WxManager, WxMgr } from '../../wx/wxManager';
 import { Label } from 'cc';
 import { Color } from 'cc';
@@ -129,6 +130,40 @@ export class settingViewCmpt extends BaseViewCmpt {
     payContent: Node = null;
     @property(Prefab)
     PayInfoItem: Prefab = null;
+
+    /**
+     * 格式化支付时间，参照运维后台格式
+     * @param dateString 时间字符串
+     * @returns 格式化后的时间字符串
+     */
+    formatPayTime(dateString: string): string {
+        if (!dateString) return '未知';
+        
+        try {
+            const date = new Date(dateString);
+            
+            // 检查日期是否有效
+            if (isNaN(date.getTime())) {
+                console.warn('无效的日期字符串:', dateString);
+                return dateString;
+            }
+            
+            // 使用中国时区格式化，参照运维后台格式
+            return date.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZone: 'Asia/Shanghai'
+            });
+        } catch (error) {
+            console.error('格式化支付时间出错:', error, dateString);
+            return dateString;
+        }
+    }
+
     updatePayInfoUI(payList: any[]) {
         // 清空原有内容
         this.payContent.removeAllChildren();
@@ -142,7 +177,8 @@ export class settingViewCmpt extends BaseViewCmpt {
         // 遍历支付记录，生成条目
         payList.forEach(item => {
             const node = instantiate(this.PayInfoItem);
-            node.getChildByName("info").getComponent(Label).string = `Order No: ${item.order_no}  Amount: ${item.amount}  Pay Time: ${item.pay_time}`;
+            const formattedTime = this.formatPayTime(item.pay_time);
+            node.getChildByName("info").getComponent(Label).string = `Order No: ${item.order_no}  Amount: ${item.amount}  Pay Time: ${formattedTime}`;
             this.payContent.addChild(node);
         });
     }
