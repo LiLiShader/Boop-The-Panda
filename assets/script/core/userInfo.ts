@@ -195,6 +195,9 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
                 // 保存登录信息
                 this.saveLoginInfo(pid, password);
                 
+                // 同步用户数据到本地存储和UI
+                await this.syncUserData(result.data);
+                
                 return true;
             } else {
                 console.error('用户登录失败:', result.message);
@@ -226,15 +229,21 @@ export class UserInfo extends SingletonClass<UserInfo> implements UserInfo {
                     if (xhr.status === 200) {
                         try {
                             const result = JSON.parse(xhr.responseText);
-                            if (result.success) {
-                                console.log('用户登录成功(XHR):', result.data);
-                                self.isLoggedIn = true;
-                                self.currentUser = result.data;
-                                
-                                // 保存登录信息
-                                self.saveLoginInfo(pid, password);
-                                
+                                                    if (result.success) {
+                            console.log('用户登录成功(XHR):', result.data);
+                            self.isLoggedIn = true;
+                            self.currentUser = result.data;
+                            
+                            // 保存登录信息
+                            self.saveLoginInfo(pid, password);
+                            
+                            // 同步用户数据到本地存储和UI
+                            self.syncUserData(result.data).then(() => {
                                 resolve(true);
+                            }).catch(error => {
+                                console.error('[Login XHR] 同步用户数据失败:', error);
+                                resolve(true); // 即使同步失败，登录仍然成功
+                            });
                             } else {
                                 console.error('用户登录失败(XHR):', result.message);
                                 resolve(false);
