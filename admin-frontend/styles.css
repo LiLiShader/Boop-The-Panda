@@ -173,10 +173,30 @@ button {
 
 /* 订单列表 */
 .scrollable-container {
-    max-height: 400px;
+    max-height: 600px;
     overflow-y: auto;
     border: 1px solid #eee;
     border-radius: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: #4a6fa5 #f0f0f0;
+}
+
+.scrollable-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.scrollable-container::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 4px;
+}
+
+.scrollable-container::-webkit-scrollbar-thumb {
+    background: #4a6fa5;
+    border-radius: 4px;
+}
+
+.scrollable-container::-webkit-scrollbar-thumb:hover {
+    background: #3a5a8a;
 }
 
 .orders-list {
@@ -186,8 +206,8 @@ button {
 .order-item {
     background-color: #f9f9f9;
     border-radius: 4px;
-    padding: 15px;
-    margin-bottom: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
     border-left: 4px solid #4a6fa5;
     cursor: pointer;
     transition: background-color 0.2s;
@@ -593,6 +613,10 @@ footer {
     
     .orders-section {
         flex: 2;
+    }
+    
+    .scrollable-container {
+        max-height: 700px;
     }
 }
 
