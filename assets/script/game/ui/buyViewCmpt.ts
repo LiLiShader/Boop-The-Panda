@@ -387,6 +387,53 @@ export class BuyViewCmpt extends BaseViewCmpt {
         });
     }
 
+    emailzhengze(){
+        // 获取邮箱输入框的值
+        const emailNode = this.formNodes['email'];
+        if (!emailNode) {
+            console.warn('邮箱输入框节点未找到');
+            return false;
+        }
+        
+        const editBox = emailNode.getComponent(EditBox);
+        if (!editBox) {
+            console.warn('邮箱输入框EditBox组件未找到');
+            return false;
+        }
+        
+        const email = editBox.string.trim();
+        
+        // 邮箱正则表达式
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        
+        // 校验邮箱格式
+        if (!email) {
+            App.view.showMsgTips('Please enter your email address');
+            return false;
+        }
+        
+        if (!emailRegex.test(email)) {
+            App.view.showMsgTips('Please enter a valid email address');
+            return false;
+        }
+        
+        // 校验邮箱长度
+        if (email.length > 254) {
+            App.view.showMsgTips('Email address is too long');
+            return false;
+        }
+        
+        // 校验邮箱域名
+        const domain = email.split('@')[1];
+        if (domain && domain.length > 253) {
+            App.view.showMsgTips('Email domain is too long');
+            return false;
+        }
+        
+        console.log('邮箱格式校验通过:', email);
+        return true;
+    }
+
     // 新增：初始化country/state下拉选项
     private initCountryStateDropdown() {
         // 常用国家英文
@@ -498,6 +545,12 @@ export class BuyViewCmpt extends BaseViewCmpt {
     }
     closePaymentInformation(){
         const paymentInformationNode = find('PaymentForm', this.node);
+        
+        // 首先进行邮箱格式校验
+        if (!this.emailzhengze()) {
+            return; // 如果邮箱校验失败，直接返回
+        }
+        
         // 检查所有EditBox参数
         const requiredFields = [
             'email', 'firstName', 'lastName', 'phone', 'address', 'city', 'zipCode', 'cardNumber', 'expMonth', 'expYear', 'cvv2'
