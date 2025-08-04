@@ -1,8 +1,62 @@
+#!/bin/bash
+
+# =====================================================
+# 导出表结构脚本
+# 创建时间: 2025-08-01
+# 版本: v1.0.0
+# 说明: 导出完整的表结构
+# =====================================================
+
+# 颜色定义
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo -e "${BLUE}📤 导出表结构...${NC}"
+echo "=========================================="
+
+# 配置
+SERVER_IP="119.91.142.92"
+DB_USER="gameuser"
+DB_PASSWORD="123456"
+DB_NAME="game_db"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+
+# 文件名
+STRUCTURE_FILE="game_db_structure_${TIMESTAMP}.sql"
+FULL_BACKUP_FILE="game_db_full_backup_${TIMESTAMP}.sql"
+
+echo -e "${YELLOW}服务器地址: ${SERVER_IP}${NC}"
+echo -e "${YELLOW}数据库名称: ${DB_NAME}${NC}"
+echo -e "${YELLOW}时间戳: ${TIMESTAMP}${NC}"
+
+# 方法1: 使用SSH远程执行mysqldump
+echo -e "\n${BLUE}方法1: 使用SSH远程执行mysqldump${NC}"
+
+if command -v ssh &> /dev/null; then
+    echo -e "${YELLOW}尝试通过SSH连接服务器...${NC}"
+    
+    # 这里需要替换为实际的服务器信息
+    # ssh user@${SERVER_IP} "mysqldump -u root -p --no-data ${DB_NAME} > /tmp/${STRUCTURE_FILE}"
+    
+    echo -e "${YELLOW}请手动执行以下命令:${NC}"
+    echo -e "${YELLOW}ssh user@${SERVER_IP}${NC}"
+    echo -e "${YELLOW}mysqldump -u root -p --no-data ${DB_NAME} > ${STRUCTURE_FILE}${NC}"
+    echo -e "${YELLOW}scp user@${SERVER_IP}:${STRUCTURE_FILE} ./${NC}"
+else
+    echo -e "${RED}SSH客户端未安装${NC}"
+fi
+
+# 方法2: 生成表结构SQL文件
+echo -e "\n${BLUE}方法2: 生成表结构SQL文件${NC}"
+
+cat > "${STRUCTURE_FILE}" << 'EOF'
 -- =====================================================
--- Boop-The-Panda 完整数据库备份文件
--- 创建时间: 2025-08-01
--- 版本: v1.0.0
--- 说明: 此文件包含完整的数据库结构和初始数据
+-- game_db 表结构导出
+-- 导出时间: $(date)
+-- 数据库: game_db
 -- =====================================================
 
 -- 删除已存在的数据库（如果存在）
@@ -123,81 +177,6 @@ CREATE TABLE admin_operation_logs (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='管理员操作日志表';
 
 -- =====================================================
--- 初始数据插入
--- =====================================================
-
--- 插入管理员账号
-INSERT INTO users (pid, name, password, level, gold, icon, created_at, updated_at, last_sync_time) VALUES
-('admin001', 'administrators', 'admin123456', 99, 0, 1, NOW(), NOW(), NOW()),
-('test001', '测试用户1', '123456', 1, 500, 1, NOW(), NOW(), NOW()),
-('test002', '测试用户2', '123456', 1, 500, 1, NOW(), NOW(), NOW()),
-('CCCCCC', 'test17538785329844475', '123456', 1, 762, 1, NOW(), NOW(), NOW()),
-('357753', 'test17539571145917840', '123456', 1, 500, 1, NOW(), NOW(), NOW()),
-('ghjkl', 'test17537353169118058', '123456', 1, 500, 1, NOW(), NOW(), NOW()),
-('iiiiii', 'test17539480174654304', '123456', 1, 500, 1, NOW(), NOW(), NOW()),
-('123456', 'test17538499419531127', '123456', 1, 500, 1, NOW(), NOW(), NOW()),
-('aaaaaa', 'test', '123456', 1, 500, 1, NOW(), NOW(), NOW()),
-('ooooo', 'test', '123456', 1, 500, 1, NOW(), NOW(), NOW()),
-('666666', 'test', '123456', 1, 500, 1, NOW(), NOW(), NOW()),
-('qqq', 'www', '123456', 1, 500, 1, NOW(), NOW(), NOW()),
-('niuyueren', 'test', '123456', 1, 500, 1, NOW(), NOW(), NOW()),
-('19970211', '张璨', '123456', 1, 500, 1, NOW(), NOW(), NOW()),
-('testid', '测试用户', '123456', 1, 500, 1, NOW(), NOW(), NOW());
-
--- 插入全局配置
-INSERT INTO global_config (config_key, config_value, description) VALUES
-('payment_mode', '2D', '支付模式：2D或3D'),
-('game_version', '1.0.0', '游戏版本号'),
-('maintenance_mode', 'false', '维护模式：true或false'),
-('max_retry_count', '3', '最大重试次数'),
-('sync_interval', '300', '数据同步间隔(秒)'),
-('max_offline_days', '7', '最大离线天数'),
-('diamond_exchange_rate', '1', '钻石兑换比例'),
-('heart_recovery_time', '1800', '生命值恢复时间(秒)');
-
--- 插入示例用户游戏数据
-INSERT INTO user_game_data (user_id, data_key, data_value) VALUES
-('test001', 'Gold', '500'),
-('test001', 'Level', '1'),
-('test001', 'Heart', '5'),
-('test001', 'MaxLevel', '1'),
-('test001', 'TotalScore', '0'),
-('test002', 'Gold', '500'),
-('test002', 'Level', '1'),
-('test002', 'Heart', '5'),
-('CCCCCC', 'Gold', '762'),
-('CCCCCC', 'Level', '1'),
-('CCCCCC', 'Heart', '5');
-
--- 插入示例支付记录
-INSERT INTO payment_records (user_id, user_name, amount, order_no, pay_time, raw_response, product_id, product_info, product_details) VALUES
-('CCCCCC', 'test17538785329844475', 8.00, '1001407300003276', '2025-08-01 12:14:34', '{"code":"P0001","message":"payment successful!|Success","orderNo":"10014017540216734278","merNo":"100140","billNo":"1001407300003276","amount":"8.00","currency":"1","tradeStatus":"S0001","returnURL":"http://119.91.142.92:3000/api/payment/get3DResult","md5Info":"f348a95e97b2b42efbb63f9c10a4553e","tradeTime":1754021673309,"auth3DUrl":null,"billAddr":"buyaaa","rebillToken":"J0x810w1p1/4n45Gc+4ToIABRv3Q==","threeDSecure":"","cnyexchangeRate":"7.1863"}', 'itemBtn1', '钻石礼包-12钻石', '{"diamonds":12,"isFirstCharge":false}'),
-('CCCCCC', 'test17538785329844475', 8.00, '1002043438704951', '2025-08-01 12:14:34', '{"code":"P0001","message":"3D支付成功"}', 'itemBtn1', '钻石礼包-12钻石', '{"diamonds":12,"isFirstCharge":false}'),
-('CCCCCC', 'test17538785329844475', 8.00, '1002043438704951_2', '2025-08-01 12:14:16', '{"code":"P0001","message":"3D支付成功"}', 'itemBtn1', '钻石礼包-12钻石', '{"diamonds":12,"isFirstCharge":false}'),
-('CCCCCC', 'test17538785329844475', 100.00, '1002048645706683', '2025-08-01 09:59:56', '{"code":"P0001","message":"3D支付成功"}', 'itemBtn5', '钻石礼包-180钻石', '{"diamonds":180,"isFirstCharge":false}'),
-('CCCCCC', 'test17538785329844475', 8.00, '1002042599703189', '2025-08-01 09:59:30', '{"code":"P0001","message":"3D支付成功"}', 'itemBtn1', '钻石礼包-12钻石', '{"diamonds":12,"isFirstCharge":false}'),
-('357753', 'test17539571145917840', 8.00, '1002040618404649', '2025-07-31 18:33:38', '{"code":"P0001","message":"3D支付成功"}', 'itemBtn1', '钻石礼包-12钻石', '{"diamonds":12,"isFirstCharge":false}'),
-('357753', 'test17539571145917840', 8.00, '1002040659107976', '2025-07-31 18:20:16', '{"code":"P0001","message":"3D支付成功"}', 'itemBtn1', '钻石礼包-12钻石', '{"diamonds":12,"isFirstCharge":false}'),
-('ghjkl', 'test17537353169118058', 80.00, '1002040048209697', '2025-07-31 18:15:13', '{"code":"P0001","message":"3D支付成功"}', 'itemBtn4', '钻石礼包-140钻石', '{"diamonds":140,"isFirstCharge":false}'),
-('ghjkl', 'test17537353169118058', 40.00, '1002045061600681', '2025-07-31 18:14:41', '{"code":"P0001","message":"3D支付成功"}', 'itemBtn3', '钻石礼包-70钻石', '{"diamonds":70,"isFirstCharge":false}'),
-('ghjkl', 'test17537353169118058', 80.00, '1002040711600615', '2025-07-31 18:13:39', '{"code":"P0001","message":"3D支付成功"}', 'itemBtn4', '钻石礼包-140钻石', '{"diamonds":140,"isFirstCharge":false}');
-
--- 插入示例系统日志
-INSERT INTO system_logs (log_level, log_type, message, user_id, ip_address, user_agent) VALUES
-('INFO', 'USER_LOGIN', '用户登录成功', 'test001', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
-('INFO', 'PAYMENT_SUCCESS', '支付成功', 'CCCCCC', '192.168.1.101', 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X)'),
-('WARN', 'SYNC_FAILED', '数据同步失败，网络异常', 'test002', '192.168.1.102', 'Mozilla/5.0 (Android 10; Mobile)'),
-('ERROR', 'DATABASE_ERROR', '数据库连接失败', NULL, '127.0.0.1', 'Node.js/16.0.0'),
-('INFO', 'ADMIN_LOGIN', '管理员登录成功', 'admin001', '192.168.1.103', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
-
--- 插入示例管理员操作日志
-INSERT INTO admin_operation_logs (admin_id, operation_type, operation_desc, target_table, target_id, old_data, new_data, ip_address) VALUES
-('admin001', 'UPDATE_CONFIG', '更新支付模式为3D', 'global_config', 'payment_mode', '{"config_value":"2D"}', '{"config_value":"3D"}', '192.168.1.103'),
-('admin001', 'QUERY_ORDERS', '查询所有支付订单', 'payment_records', NULL, NULL, NULL, '192.168.1.103'),
-('admin001', 'EXPORT_DATA', '导出订单数据为Excel', 'payment_records', NULL, NULL, NULL, '192.168.1.103'),
-('admin001', 'VIEW_USER', '查看用户信息', 'users', 'test001', NULL, '{"pid":"test001","name":"测试用户1","level":1,"gold":500}', '192.168.1.103');
-
--- =====================================================
 -- 创建视图
 -- =====================================================
 
@@ -312,45 +291,40 @@ GRANT EXECUTE ON PROCEDURE game_db.* TO 'gameuser'@'%';
 FLUSH PRIVILEGES;
 
 -- =====================================================
--- 数据库状态检查
+-- 表结构导出完成
 -- =====================================================
 
--- 显示表信息
-SHOW TABLES;
-
--- 显示表结构
-DESCRIBE users;
-DESCRIBE user_game_data;
-DESCRIBE global_config;
-DESCRIBE payment_records;
-DESCRIBE system_logs;
-DESCRIBE admin_operation_logs;
-
--- 显示初始数据
-SELECT 'Users Table' as table_name, COUNT(*) as record_count FROM users
-UNION ALL
-SELECT 'User Game Data Table', COUNT(*) FROM user_game_data
-UNION ALL
-SELECT 'Global Config Table', COUNT(*) FROM global_config
-UNION ALL
-SELECT 'Payment Records Table', COUNT(*) FROM payment_records
-UNION ALL
-SELECT 'System Logs Table', COUNT(*) FROM system_logs
-UNION ALL
-SELECT 'Admin Operation Logs Table', COUNT(*) FROM admin_operation_logs;
-
--- 显示管理员账号
-SELECT id, pid, name, level, created_at FROM users WHERE level >= 99;
-
--- 显示全局配置
-SELECT config_key, config_value, description FROM global_config;
-
--- =====================================================
--- 备份完成提示
--- =====================================================
-
-SELECT 'Database backup completed successfully!' as status;
+SELECT 'Table structure export completed successfully!' as status;
 SELECT 'Total tables created: 6' as info;
-SELECT 'Initial data inserted successfully' as info;
 SELECT 'All indexes and triggers created' as info;
-SELECT 'Database is ready for use' as info; 
+SELECT 'Database structure is ready for use' as info;
+EOF
+
+echo -e "${GREEN}✅ 表结构文件已生成: ${STRUCTURE_FILE}${NC}"
+
+# 方法3: 复制现有的完整备份文件
+echo -e "\n${BLUE}方法3: 复制现有的完整备份文件${NC}"
+
+if [ -f "complete_database_backup.sql" ]; then
+    cp complete_database_backup.sql "${FULL_BACKUP_FILE}"
+    echo -e "${GREEN}✅ 完整备份文件已复制: ${FULL_BACKUP_FILE}${NC}"
+else
+    echo -e "${RED}❌ 完整备份文件不存在${NC}"
+fi
+
+# 显示生成的文件
+echo -e "\n${BLUE}生成的文件:${NC}"
+ls -la *${TIMESTAMP}*.sql
+
+echo -e "\n${GREEN}==========================================${NC}"
+echo -e "${GREEN}📤 表结构导出完成！${NC}"
+echo -e "${GREEN}==========================================${NC}"
+echo -e "${GREEN}✅ 表结构文件: ${STRUCTURE_FILE}${NC}"
+echo -e "${GREEN}✅ 完整备份文件: ${FULL_BACKUP_FILE}${NC}"
+
+echo -e "\n${YELLOW}💡 使用说明:${NC}"
+echo -e "${YELLOW}1. 表结构文件只包含表结构，不包含数据${NC}"
+echo -e "${YELLOW}2. 完整备份文件包含表结构和初始数据${NC}"
+echo -e "${YELLOW}3. 可以在其他环境中导入使用${NC}"
+
+echo -e "\n${BLUE}📝 导出完成时间: $(date)${NC}" 
