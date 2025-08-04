@@ -142,6 +142,9 @@ export class GameViewCmpt extends BaseViewCmpt {
         // 添加测试广告按钮
         this.addTestAdButton();
         this.onClick_testAdBtn();
+        
+        // 游戏开始时更新钻石数量显示
+        this.更新当前钻石数量();
     }
     /*********************************************  UI information *********************************************/
     /*********************************************  UI information *********************************************/
@@ -207,6 +210,9 @@ export class GameViewCmpt extends BaseViewCmpt {
         if (this.addBtn7) {
             this.addBtn7.active = reshuffleCount <= 0;
         }
+        
+        // 更新钻石数量显示
+        this.更新当前钻石数量();
     }
 
     /** 更新消除目标数量 */
@@ -1393,6 +1399,9 @@ export class GameViewCmpt extends BaseViewCmpt {
             
             // 同步金币数据到服务器
             this.syncGoldDataToServer();
+            
+            // 消耗钻石后更新钻石数量显示
+            this.更新当前钻石数量();
         } else {
             // 金币不足，显示提示
             App.view.showMsgTips("Insufficient coins");
@@ -1758,6 +1767,21 @@ export class GameViewCmpt extends BaseViewCmpt {
             });
         } catch (error) {
             console.error('[GameView] 手动同步金币数据失败:', error);
+        }
+    }
+    更新当前钻石数量(){
+        const diamondLabel = find("bottom/frame/lbBei", this.node);
+        if (diamondLabel) {
+            const labelComp = diamondLabel.getComponent(Label);
+            if (labelComp) {
+                const currentDiamonds = GlobalFuncHelper.getGold();
+                labelComp.string = "Surplus: "+ currentDiamonds.toString();
+                console.log('更新钻石数量显示:', currentDiamonds);
+            } else {
+                console.warn('钻石数量标签节点没有Label组件');
+            }
+        } else {
+            console.warn('未找到钻石数量标签节点: bottom/frame/lbBei');
         }
     }
 }

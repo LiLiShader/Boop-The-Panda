@@ -157,7 +157,7 @@ export class settingViewCmpt extends BaseViewCmpt {
         const user = App.user.currentUser;
         if (!user || !user.pid) {
             console.warn('未登录，无法查询支付记录');
-            App.view.showMsgTips('请先登录后再查看支付记录');
+            // App.view.showMsgTips('请先登录后再查看支付记录');
             return;
         }
         // 请求后端API - 使用统一配置
@@ -168,11 +168,11 @@ export class settingViewCmpt extends BaseViewCmpt {
             // 更新UI并显示提示
             this.updatePayInfoUI(result.data);
             if (result.data && result.data.length > 0) {
-                App.view.showMsgTips('点击任意支付记录可查看详细信息');
+                // App.view.showMsgTips('点击任意支付记录可查看详细信息');
             }
         } else {
             console.error('查询支付记录失败', result.message);
-            App.view.showMsgTips('查询支付记录失败，请稍后重试');
+            // App.view.showMsgTips('查询支付记录失败，请稍后重试');
         }
     }
     
