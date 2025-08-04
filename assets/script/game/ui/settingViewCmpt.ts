@@ -1,4 +1,4 @@
-import { _decorator, Component, instantiate, Node } from 'cc';
+import { _decorator, Component, find, instantiate, Node, RichText } from 'cc';
 import { BaseViewCmpt } from '../../components/baseViewCmpt';
 import { PageIndex } from '../../const/enumConst';
 import { EventName } from '../../const/eventName';
@@ -10,10 +10,7 @@ import { GlobalFuncHelper } from '../../utils/globalFuncHelper';
 import { StorageHelper, StorageHelperKey } from '../../utils/storageHelper';
 import { ToolsHelper } from '../../utils/toolsHelper';
 import { WxManager, WxMgr } from '../../wx/wxManager';
-import { Label } from 'cc';
-import { Color } from 'cc';
-import { UITransform } from 'cc';
-import { Prefab } from 'cc';
+import { Label, Prefab, Button } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('settingViewCmpt')
@@ -22,6 +19,15 @@ export class settingViewCmpt extends BaseViewCmpt {
     private lbHeart: Node = null;
     private head: Node = null;
     private content: Node = null;
+    
+    // 支付记录详情面板相关
+    private infoBG: Node = null;
+    private infoMask: Node = null;
+    private infoContent: Node = null;
+    private infoTitle: Node = null;
+    private infoContentLabel: RichText = null;
+    private infoClose: Node = null;
+    
     onLoad() {
         for (let i = 1; i < 10; i++) {
             this[`onClick_head${i}`] = this.onClickHead.bind(this);
@@ -31,7 +37,45 @@ export class settingViewCmpt extends BaseViewCmpt {
         this.lbHeart = this.viewList.get('animNode/content/p/lbHeart');
         this.content = this.viewList.get('scrollview/view/content');
         this.head = this.viewList.get('bg/head');
+        
+        // 获取InfoBG面板相关节点
+        this.infoBG = find('InfoBG', this.node);
+        this.infoMask = find('InfoBG/InfoMask', this.node);
+        this.infoContent = find('InfoBG/InfoContent', this.node);
+        this.infoTitle = find('InfoBG/InfoContent/Title', this.node);
+        this.infoContentLabel = find('InfoBG/InfoContent/Content', this.node).getComponent(RichText)
+        
+        this.infoClose = this.viewList.get('InfoBG/InfoContent/Close');
+        
+        // 绑定关闭事件
+        if (this.infoClose) {
+            this.infoClose.on('click', this.hideInfoDetail, this);
+        }
+        if (this.infoMask) {
+            this.infoMask.on('click', this.hideInfoDetail, this);
+        }
+        
         this.updateOperateStatus();
+        
+        // 默认隐藏详情面板
+        this.hideInfoDetail();
+    }
+
+    // 显示详情面板
+    private showInfoDetail(content: string) {
+        if (this.infoBG) {
+            this.infoBG.active = true;
+        }
+        if (this.infoContentLabel) {
+            this.infoContentLabel.string = content;
+        }
+    }
+
+    // 隐藏详情面板
+    private hideInfoDetail() {
+        if (this.infoBG) {
+            this.infoBG.active = false;
+        }
     }
 
     updateOperateStatus() {
@@ -113,6 +157,7 @@ export class settingViewCmpt extends BaseViewCmpt {
         const user = App.user.currentUser;
         if (!user || !user.pid) {
             console.warn('未登录，无法查询支付记录');
+            App.view.showMsgTips('请先登录后再查看支付记录');
             return;
         }
         // 请求后端API - 使用统一配置
@@ -120,12 +165,17 @@ export class settingViewCmpt extends BaseViewCmpt {
         const result = await resp.json();
         if (result.success) {
             console.log('支付记录：', result.data);
-            // 你可以在这里把数据渲染到UI上
+            // 更新UI并显示提示
             this.updatePayInfoUI(result.data);
+            if (result.data && result.data.length > 0) {
+                App.view.showMsgTips('点击任意支付记录可查看详细信息');
+            }
         } else {
             console.error('查询支付记录失败', result.message);
+            App.view.showMsgTips('查询支付记录失败，请稍后重试');
         }
     }
+    
     @property(Node)
     payContent: Node = null;
     @property(Prefab)
@@ -175,11 +225,105 @@ export class settingViewCmpt extends BaseViewCmpt {
             return;
         }
         // 遍历支付记录，生成条目
-        payList.forEach(item => {
+        payList.forEach((item, index) => {
             const node = instantiate(this.PayInfoItem);
             const formattedTime = this.formatPayTime(item.pay_time);
             node.getChildByName("info").getComponent(Label).string = `Order No: ${item.order_no}  Amount: ${item.amount}  Pay Time: ${formattedTime}`;
+            
+            // 为每个条目添加点击事件
+            const button = node.addComponent(Button);
+            button.node.on('click', () => {
+                this.showPaymentDetail(item);
+            });
+            
             this.payContent.addChild(node);
         });
+    }
+
+    // 显示支付记录详情
+    private showPaymentDetail(paymentData: any) {
+        // 解析商品详情
+        let productDetails = '';
+        console.log(paymentData.product_details);
+        try {
+            if (paymentData.product_details) {
+                const details = typeof paymentData.product_details === 'string' 
+                    ? JSON.parse(paymentData.product_details) 
+                    : paymentData.product_details;
+                
+                const items = [];
+                if (details.diamonds) {
+                    items.push(`💎 Diamonds: ${details.diamonds}`);
+                }
+                if (details.bombBomb) {
+                    items.push(`💣 Bombs: ${details.bombBomb}`);
+                }
+                if (details.bombHor) {
+                    items.push(`➡️ Horizontal Bombs: ${details.bombHor}`);
+                }
+                if (details.bombVer) {
+                    items.push(`⬇️ Vertical Bombs: ${details.bombVer}`);
+                }
+                if (details.bombAllSame) {
+                    items.push(`🎯 Same Type Bombs: ${details.bombAllSame}`);
+                }
+                if (details.isFirstCharge) {
+                    items.push(`🎁 First Charge Gift: Yes`);
+                }
+                
+                productDetails = items.length > 0 ? items.join('\n') : 'No product details';
+            }
+        } catch (e) {
+            console.error('Failed to parse product details:', e);
+            productDetails = 'Failed to parse product details';
+        }
+        
+        // 解析原始响应
+        let rawResponseText = '';
+        try {
+            if (paymentData.raw_response) {
+                const rawResponse = typeof paymentData.raw_response === 'string' 
+                    ? JSON.parse(paymentData.raw_response) 
+                    : paymentData.raw_response;
+                // 格式化JSON，使其更易读
+                const formattedResponse = JSON.stringify(rawResponse, null, 2);
+                // 限制显示长度，避免过长
+                rawResponseText = formattedResponse.length > 500 ? 
+                    formattedResponse.substring(0, 500) + '...' : 
+                    formattedResponse;
+            }
+        } catch (e) {
+            console.error('Failed to parse raw response:', e);
+            rawResponseText = 'Failed to parse raw response';
+        }
+        
+        // 从product_info中提取数字
+        let extractedNumbers = '';
+        if (paymentData.product_info) {
+            // 提取所有数字
+            const numbers = paymentData.product_info.match(/\d+/g);
+            if (numbers && numbers.length > 0) {
+                extractedNumbers = `${numbers.join(', ')}`;
+            }
+        }
+        console.log(extractedNumbers);
+        // 组装详情内容
+        const detailContent = `👤 User Information
+User ID: ${paymentData.user_id || 'Unknown'}
+Username: ${paymentData.user_name || 'Unknown'}
+
+📋 Order Information
+Order No: ${paymentData.order_no || 'Unknown'}
+Amount: $${paymentData.amount || 0}
+Pay Time: ${this.formatPayTime(paymentData.pay_time) || 'Unknown'}
+
+🎮 Product Details
+${"diamonds:"+extractedNumbers }
+
+
+`;
+        console.log(detailContent);
+        // 显示详情面板
+        this.showInfoDetail(detailContent);
     }
 }
