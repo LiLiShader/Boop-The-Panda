@@ -221,6 +221,64 @@ button {
     margin-bottom: 0;
 }
 
+/* 用户列表样式 */
+.users-section {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.users-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.users-list {
+    padding: 10px;
+}
+
+.user-item {
+    background-color: #ffffff;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-left: 4px solid #28a745;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.user-item:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.user-item:last-child {
+    margin-bottom: 0;
+}
+
+.user-header {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.user-header p {
+    margin: 5px 0;
+    font-weight: bold;
+    color: #333;
+}
+
+.user-details p {
+    margin: 5px 0;
+    color: #666;
+}
+
 .empty-message {
     color: #888;
     text-align: center;

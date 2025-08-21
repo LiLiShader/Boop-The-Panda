@@ -85,6 +85,7 @@
                     <!-- 查询所有订单 -->
                     <div class="search-group">
                         <button id="query-all-btn" class="secondary-btn">查询全部订单</button>
+                        <button id="query-all-users-btn" class="secondary-btn">查全部用户</button>
                         <button id="export-excel-btn" class="export-btn" disabled>导出为Excel</button>
                     </div>
                 </div>
@@ -94,6 +95,21 @@
                     <h3>用户信息</h3>
                     <div id="user-info" class="info-display">
                         <p class="empty-message">请输入用户ID进行查询</p>
+                    </div>
+                </div>
+                
+                <!-- 用户列表区域 -->
+                <div class="users-section" id="users-section" style="display: none;">
+                    <h3>用户列表</h3>
+                    <div class="users-header">
+                        <div class="results-info">
+                            <span id="users-count">0</span> 个用户
+                        </div>
+                    </div>
+                    <div class="scrollable-container">
+                        <div id="users-list" class="users-list">
+                            <p class="empty-message">暂无用户信息</p>
+                        </div>
                     </div>
                 </div>
                 

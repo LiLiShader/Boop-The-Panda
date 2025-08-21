@@ -32,8 +32,12 @@ const queryUserBtn = document.getElementById('query-user-btn');
 const queryOrderBtn = document.getElementById('query-order-btn');
 const queryTimeBtn = document.getElementById('query-time-btn');
 const queryAllBtn = document.getElementById('query-all-btn');
+const queryAllUsersBtn = document.getElementById('query-all-users-btn');
 const exportExcelBtn = document.getElementById('export-excel-btn');
 const userInfoDisplay = document.getElementById('user-info');
+const usersSection = document.getElementById('users-section');
+const usersList = document.getElementById('users-list');
+const usersCount = document.getElementById('users-count');
 const ordersList = document.getElementById('orders-list');
 const resultsCount = document.getElementById('results-count');
 const orderDetailModal = document.getElementById('order-detail-modal');
@@ -68,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
     queryOrderBtn.addEventListener('click', onQueryOrder);
     queryTimeBtn.addEventListener('click', onQueryByTimeRange);
     queryAllBtn.addEventListener('click', onQueryAllOrders);
+    queryAllUsersBtn.addEventListener('click', onQueryAllUsers);
     
     // 导出Excel按钮点击事件
     exportExcelBtn.addEventListener('click', onExportExcel);
@@ -392,6 +397,9 @@ async function onQueryUser() {
             // 获取并显示用户订单
             const userOrders = await fetchUserOrders(userId);
             updateOrdersList(userOrders);
+            
+            // 隐藏用户列表区域
+            usersSection.style.display = 'none';
         } else {
             showMessage(userInfoDisplay, '未找到用户信息');
             clearOrdersList();
@@ -429,6 +437,9 @@ async function onQueryOrder() {
         
         // 清空用户信息区域
         showMessage(userInfoDisplay, '按订单号查询无需用户信息');
+        
+        // 隐藏用户列表区域
+        usersSection.style.display = 'none';
     } catch (error) {
         console.error('查询订单出错:', error);
         showMessage(ordersList, '查询订单失败，请稍后再试');
@@ -484,6 +495,9 @@ async function onQueryByTimeRange() {
         
         // 清空用户信息区域
         showMessage(userInfoDisplay, '按时间段查询无需用户信息');
+        
+        // 隐藏用户列表区域
+        usersSection.style.display = 'none';
     } catch (error) {
         console.error('按时间段查询订单出错:', error);
         showMessage(ordersList, '查询订单失败，请稍后再试');
@@ -504,9 +518,40 @@ async function onQueryAllOrders() {
         
         // 清空用户信息区域
         showMessage(userInfoDisplay, '查询所有订单无需用户信息');
+        
+        // 隐藏用户列表区域
+        usersSection.style.display = 'none';
     } catch (error) {
         console.error('查询所有订单出错:', error);
         showMessage(ordersList, '查询所有订单失败，请稍后再试');
+    }
+}
+
+// 查询所有用户
+async function onQueryAllUsers() {
+    try {
+        // 显示加载状态
+        usersList.innerHTML = '<p class="loading">正在加载所有用户信息...</p>';
+        ordersList.innerHTML = '<p class="loading">正在加载用户订单信息...</p>';
+        
+        // 获取所有用户
+        const allUsers = await fetchAllUsers();
+        
+        // 更新用户列表
+        updateUsersList(allUsers);
+        
+        // 获取所有订单并按用户分组显示
+        const allOrders = await fetchAllOrders();
+        updateOrdersList(allOrders);
+        
+        // 显示用户列表区域
+        usersSection.style.display = 'block';
+        
+        // 清空用户信息区域
+        showMessage(userInfoDisplay, '查询所有用户无需单独用户信息');
+    } catch (error) {
+        console.error('查询所有用户出错:', error);
+        showMessage(usersList, '查询所有用户失败，请稍后再试');
     }
 }
 
@@ -665,6 +710,23 @@ async function fetchAllOrders() {
     }
 }
 
+// 获取所有用户
+async function fetchAllUsers() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/api/users`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data.success ? data.data : [];
+    } catch (error) {
+        console.error('获取所有用户失败:', error);
+        throw error;
+    }
+}
+
 // 显示用户信息
 function displayUserInfo(user) {
     userInfoDisplay.innerHTML = `
@@ -716,6 +778,44 @@ function updateOrdersList(orders) {
         });
         
         ordersList.appendChild(orderElement);
+    });
+}
+
+// 更新用户列表
+function updateUsersList(users) {
+    // 更新用户计数
+    usersCount.textContent = users.length;
+    
+    if (!users || users.length === 0) {
+        showMessage(usersList, '暂无用户信息');
+        return;
+    }
+    
+    usersList.innerHTML = '';
+    
+    users.forEach(user => {
+        const userElement = document.createElement('div');
+        userElement.className = 'user-item';
+        userElement.innerHTML = `
+            <div class="user-header">
+                <p><strong>用户ID:</strong> ${user.pid || '未知'}</p>
+                <p><strong>用户名:</strong> ${user.username || '未知'}</p>
+                <p><strong>昵称:</strong> ${user.nickname || '未知'}</p>
+            </div>
+            <div class="user-details">
+                <p><strong>金币:</strong> ${user.gold || 0}</p>
+                <p><strong>等级:</strong> ${user.level || 0}</p>
+                <p><strong>注册时间:</strong> ${formatDate(user.created_at) || '未知'}</p>
+                <p><strong>最后登录:</strong> ${formatDate(user.last_login) || '未知'}</p>
+            </div>
+        `;
+        
+        // 添加点击事件，显示用户详情
+        userElement.addEventListener('click', () => {
+            showUserDetail(user);
+        });
+        
+        usersList.appendChild(userElement);
     });
 }
 
@@ -783,6 +883,12 @@ function showOrderDetail(order) {
         productDetailsHtml = '<p>商品详情解析失败</p>';
     }
     
+    // 修改模态框标题
+    const modalTitle = orderDetailModal.querySelector('.modal-header h3');
+    if (modalTitle) {
+        modalTitle.textContent = '订单详情';
+    }
+    
     // 填充订单详情内容
     orderDetailContent.innerHTML = `
         <div class="detail-item">
@@ -814,6 +920,44 @@ function showOrderDetail(order) {
             </div>
         </div>
     `;
+    
+    // 显示模态框
+    orderDetailModal.style.display = 'block';
+}
+
+// 显示用户详情
+function showUserDetail(user) {
+    // 填充用户详情内容
+    orderDetailContent.innerHTML = `
+        <div class="detail-item">
+            <div class="detail-label">用户基本信息</div>
+            <div class="detail-value">
+                <p><strong>用户ID:</strong> ${user.pid || '未知'}</p>
+                <p><strong>用户名:</strong> ${user.username || '未知'}</p>
+                <p><strong>昵称:</strong> ${user.nickname || '未知'}</p>
+            </div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label">游戏数据</div>
+            <div class="detail-value">
+                <p><strong>金币:</strong> ${user.gold || 0}</p>
+                <p><strong>等级:</strong> ${user.level || 0}</p>
+            </div>
+        </div>
+        <div class="detail-item">
+            <div class="detail-label">时间信息</div>
+            <div class="detail-value">
+                <p><strong>注册时间:</strong> ${formatDate(user.created_at) || '未知'}</p>
+                <p><strong>最后登录:</strong> ${formatDate(user.last_login) || '未知'}</p>
+            </div>
+        </div>
+    `;
+    
+    // 修改模态框标题
+    const modalTitle = orderDetailModal.querySelector('.modal-header h3');
+    if (modalTitle) {
+        modalTitle.textContent = '用户详情';
+    }
     
     // 显示模态框
     orderDetailModal.style.display = 'block';
