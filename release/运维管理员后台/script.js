@@ -429,6 +429,9 @@ async function onQueryUser() {
         userInfoDisplay.innerHTML = '<p class="loading">正在加载用户信息...</p>';
         ordersList.innerHTML = '<p class="loading">正在加载订单信息...</p>';
         
+        // 先测试API连接
+        await testAPIConnectivity();
+        
         // 获取用户信息
         const userInfo = await fetchUserInfo(userId);
         
@@ -704,14 +707,75 @@ function getOrderItemName(order) {
 // 获取用户信息
 async function fetchUserInfo(userId) {
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/api/users/${userId}`);
+        // 尝试多个可能的API端点
+        let response = null;
+        let endpoint = '';
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+        // 尝试端点1: /api/users/${userId}
+        try {
+            endpoint = `${API_BASE_URL}/api/users/${userId}`;
+            response = await fetch(endpoint);
+            if (response.ok) {
+                const data = await response.json();
+                return data.success ? data.data : null;
+            }
+        } catch (e) {
+            console.log(`端点1失败: ${endpoint}`, e);
         }
         
-        const data = await response.json();
-        return data.success ? data.data : null;
+        // 尝试端点2: /users/${userId}
+        try {
+            endpoint = `${API_BASE_URL}/users/${userId}`;
+            response = await fetch(endpoint);
+            if (response.ok) {
+                const data = await response.json();
+                return data.success ? data.data : null;
+            }
+        } catch (e) {
+            console.log(`端点2失败: ${endpoint}`, e);
+        }
+        
+        // 尝试端点3: /admin/api/users/${userId} (原始端点)
+        try {
+            endpoint = `${API_BASE_URL}/admin/api/users/${userId}`;
+            response = await fetch(endpoint);
+            if (response.ok) {
+                const data = await response.json();
+                return data.success ? data.data : null;
+            }
+        } catch (e) {
+            console.log(`端点3失败: ${endpoint}`, e);
+        }
+        
+        // 所有直接查询端点都失败，尝试降级方案：获取所有用户然后过滤
+        console.log('所有直接查询端点都失败，尝试降级方案：获取所有用户然后过滤');
+        
+        try {
+            // 获取所有用户
+            const allUsers = await fetchAllUsers();
+            if (allUsers && allUsers.length > 0) {
+                // 在前端过滤用户
+                const targetUser = allUsers.find(user => 
+                    user.pid === userId || 
+                    user.user_id === userId || 
+                    user.username === userId
+                );
+                
+                if (targetUser) {
+                    console.log('通过降级方案找到用户:', targetUser);
+                    return targetUser;
+                } else {
+                    console.log('在所有用户中未找到匹配的用户ID:', userId);
+                    return null;
+                }
+            }
+        } catch (fallbackError) {
+            console.log('降级方案也失败:', fallbackError);
+        }
+        
+        // 所有方案都失败，抛出错误
+        throw new Error(`所有API端点都失败，最后尝试的端点: ${endpoint}, 状态: ${response?.status || 'unknown'}`);
+        
     } catch (error) {
         console.error('获取用户信息失败:', error);
         throw error;
@@ -721,14 +785,70 @@ async function fetchUserInfo(userId) {
 // 获取用户订单
 async function fetchUserOrders(userId) {
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/api/payments/user/${userId}`);
+        // 尝试多个可能的API端点
+        let response = null;
+        let endpoint = '';
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+        // 尝试端点1: /api/payments/user/${userId}
+        try {
+            endpoint = `${API_BASE_URL}/api/payments/user/${userId}`;
+            response = await fetch(endpoint);
+            if (response.ok) {
+                const data = await response.json();
+                return data.success ? data.data : [];
+            }
+        } catch (e) {
+            console.log(`获取用户订单端点1失败: ${endpoint}`, e);
         }
         
-        const data = await response.json();
-        return data.success ? data.data : [];
+        // 尝试端点2: /payments/user/${userId}
+        try {
+            endpoint = `${API_BASE_URL}/payments/user/${userId}`;
+            response = await fetch(endpoint);
+            if (response.ok) {
+                const data = await response.json();
+                return data.success ? data.data : [];
+            }
+        } catch (e) {
+            console.log(`获取用户订单端点2失败: ${endpoint}`, e);
+        }
+        
+        // 尝试端点3: /admin/api/payments/user/${userId} (原始端点)
+        try {
+            endpoint = `${API_BASE_URL}/admin/api/payments/user/${userId}`;
+            response = await fetch(endpoint);
+            if (response.ok) {
+                const data = await response.json();
+                return data.success ? data.data : [];
+            }
+        } catch (e) {
+            console.log(`获取用户订单端点3失败: ${endpoint}`, e);
+        }
+        
+        // 所有直接查询端点都失败，尝试降级方案：获取所有订单然后过滤
+        console.log('所有直接查询端点都失败，尝试降级方案：获取所有订单然后过滤');
+        
+        try {
+            // 获取所有订单
+            const allOrders = await fetchAllOrders();
+            if (allOrders && allOrders.length > 0) {
+                // 在前端过滤订单
+                const userOrders = allOrders.filter(order => 
+                    order.user_id === userId || 
+                    order.user_name === userId ||
+                    (order.user && (order.user.pid === userId || order.user.username === userId))
+                );
+                
+                console.log(`通过降级方案找到用户订单: ${userOrders.length} 条`);
+                return userOrders;
+            }
+        } catch (fallbackError) {
+            console.log('降级方案也失败:', fallbackError);
+        }
+        
+        // 所有方案都失败，抛出错误
+        throw new Error(`所有获取用户订单API端点都失败，最后尝试的端点: ${endpoint}, 状态: ${response?.status || 'unknown'}`);
+        
     } catch (error) {
         console.error('获取用户订单失败:', error);
         throw error;
@@ -738,14 +858,49 @@ async function fetchUserOrders(userId) {
 // 获取所有订单
 async function fetchAllOrders() {
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/api/payments`);
+        // 尝试多个可能的API端点
+        let response = null;
+        let endpoint = '';
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+        // 尝试端点1: /api/payments
+        try {
+            endpoint = `${API_BASE_URL}/api/payments`;
+            response = await fetch(endpoint);
+            if (response.ok) {
+                const data = await response.json();
+                return data.success ? data.data : [];
+            }
+        } catch (e) {
+            console.log(`获取所有订单端点1失败: ${endpoint}`, e);
         }
         
-        const data = await response.json();
-        return data.success ? data.data : [];
+        // 尝试端点2: /payments
+        try {
+            endpoint = `${API_BASE_URL}/payments`;
+            response = await fetch(endpoint);
+            if (response.ok) {
+                const data = await response.json();
+                return data.success ? data.data : [];
+            }
+        } catch (e) {
+            console.log(`获取所有订单端点2失败: ${endpoint}`, e);
+        }
+        
+        // 尝试端点3: /admin/api/payments (原始端点)
+        try {
+            endpoint = `${API_BASE_URL}/admin/api/payments`;
+            response = await fetch(endpoint);
+            if (response.ok) {
+                const data = await response.json();
+                return data.success ? data.data : [];
+            }
+        } catch (e) {
+            console.log(`获取所有订单端点3失败: ${endpoint}`, e);
+        }
+        
+        // 所有端点都失败，抛出错误
+        throw new Error(`所有获取所有订单API端点都失败，最后尝试的端点: ${endpoint}, 状态: ${response?.status || 'unknown'}`);
+        
     } catch (error) {
         console.error('获取所有订单失败:', error);
         throw error;
@@ -755,14 +910,49 @@ async function fetchAllOrders() {
 // 获取所有用户
 async function fetchAllUsers() {
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/api/users`);
+        // 尝试多个可能的API端点
+        let response = null;
+        let endpoint = '';
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+        // 尝试端点1: /api/users
+        try {
+            endpoint = `${API_BASE_URL}/api/users`;
+            response = await fetch(endpoint);
+            if (response.ok) {
+                const data = await response.json();
+                return data.success ? data.data : [];
+            }
+        } catch (e) {
+            console.log(`获取所有用户端点1失败: ${endpoint}`, e);
         }
         
-        const data = await response.json();
-        return data.success ? data.data : [];
+        // 尝试端点2: /users
+        try {
+            endpoint = `${API_BASE_URL}/users`;
+            response = await fetch(endpoint);
+            if (response.ok) {
+                const data = await response.json();
+                return data.success ? data.data : [];
+            }
+        } catch (e) {
+            console.log(`获取所有用户端点2失败: ${endpoint}`, e);
+        }
+        
+        // 尝试端点3: /admin/api/users (原始端点)
+        try {
+            endpoint = `${API_BASE_URL}/admin/api/users`;
+            response = await fetch(endpoint);
+            if (response.ok) {
+                const data = await response.json();
+                return data.success ? data.data : [];
+            }
+        } catch (e) {
+            console.log(`获取所有用户端点3失败: ${endpoint}`, e);
+        }
+        
+        // 所有端点都失败，抛出错误
+        throw new Error(`所有获取所有用户API端点都失败，最后尝试的端点: ${endpoint}, 状态: ${response?.status || 'unknown'}`);
+        
     } catch (error) {
         console.error('获取所有用户失败:', error);
         throw error;
@@ -1050,4 +1240,39 @@ function formatDate(dateString) {
         console.error('格式化日期出错:', error, dateString);
         return dateString;
     }
+} 
+
+// 测试API连接
+async function testAPIConnectivity() {
+    console.log('=== 测试API连接 ===');
+    console.log('API_BASE_URL:', API_BASE_URL);
+    
+    try {
+        // 测试基本连接
+        const response = await fetch(`${API_BASE_URL}/`);
+        console.log('基本连接测试:', response.status, response.statusText);
+    } catch (error) {
+        console.log('基本连接失败:', error.message);
+    }
+    
+    // 测试各个可能的端点
+    const endpoints = [
+        '/api/users',
+        '/users', 
+        '/admin/api/users',
+        '/api/payments',
+        '/payments',
+        '/admin/api/payments'
+    ];
+    
+    for (const endpoint of endpoints) {
+        try {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`);
+            console.log(`${endpoint}: ${response.status} ${response.statusText}`);
+        } catch (error) {
+            console.log(`${endpoint}: 连接失败 - ${error.message}`);
+        }
+    }
+    
+    console.log('=== API连接测试完成 ===');
 } 
