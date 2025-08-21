@@ -109,8 +109,25 @@ function initDateTimeInputs() {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(now.getDate() - 7);
     
-    startTimeInput.value = formatDateForInput(oneWeekAgo);
-    endTimeInput.value = formatDateForInput(now);
+    console.log('initDateTimeInputs - 原始时间:', {
+        now: now.toISOString(),
+        oneWeekAgo: oneWeekAgo.toISOString()
+    });
+    
+    // 起始时间设为一周前的00:00
+    const startTime = formatDateForInput(oneWeekAgo, true);
+    startTimeInput.value = startTime;
+    
+    // 结束时间设为今天的23:59
+    const endTime = formatDateForInput(now, false);
+    endTimeInput.value = endTime;
+    
+    console.log('initDateTimeInputs - 设置后的时间:', {
+        startTime: startTime,
+        endTime: endTime,
+        startTimeInputValue: startTimeInput.value,
+        endTimeInputValue: endTimeInput.value
+    });
 }
 
 // ==================== 登录管理功能 ====================
@@ -232,8 +249,33 @@ function showLoginMessage(message, type = 'info') {
 }
 
 // 格式化日期为datetime-local输入格式
-function formatDateForInput(date) {
-    return date.toISOString().slice(0, 16);
+function formatDateForInput(date, isStartTime = true) {
+    // 获取本地时间的各个部分
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    let hours, minutes;
+    if (isStartTime) {
+        // 起始时间设为00:00
+        hours = '00';
+        minutes = '00';
+    } else {
+        // 结束时间设为23:59
+        hours = '23';
+        minutes = '59';
+    }
+    
+    const result = `${year}-${month}-${day}T${hours}:${minutes}`;
+    
+    // 调试输出
+    console.log(`formatDateForInput: ${isStartTime ? 'start' : 'end'} time`, {
+        originalDate: date,
+        result: result,
+        year, month, day, hours, minutes
+    });
+    
+    return result;
 }
 
 // ==================== 支付模式管理功能 ====================

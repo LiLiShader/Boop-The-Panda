@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时间输入测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        input[type="datetime-local"] { margin: 10px; padding: 5px; }
+        button { margin: 10px; padding: 10px; background: #007bff; color: white; border: none; cursor: pointer; }
+        .debug { background: #f8f9fa; padding: 10px; margin: 10px 0; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>时间输入测试页面</h1>
+    
+    <div class="test-section">
+        <h3>测试1: 使用 toISOString()</h3>
+        <input type="datetime-local" id="test1-start" placeholder="起始时间">
+        <input type="datetime-local" id="test1-end" placeholder="结束时间">
+        <button onclick="test1()">测试1</button>
+        <div id="debug1" class="debug"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>测试2: 使用本地时间格式化</h3>
+        <input type="datetime-local" id="test2-start" placeholder="起始时间">
+        <input type="datetime-local" id="test2-end" placeholder="结束时间">
+        <button onclick="test2()">测试2</button>
+        <div id="debug2" class="debug"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>测试3: 强制设置时间</h3>
+        <input type="datetime-local" id="test3-start" placeholder="起始时间">
+        <input type="datetime-local" id="test3-end" placeholder="结束时间">
+        <button onclick="test3()">测试3</button>
+        <div id="debug3" class="debug"></div>
+    </div>
+
+    <script>
+        function test1() {
+            const now = new Date();
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(now.getDate() - 7);
+            
+            // 设置时间
+            oneWeekAgo.setHours(0, 0, 0, 0);
+            now.setHours(23, 59, 0, 0);
+            
+            const startTime = oneWeekAgo.toISOString().slice(0, 16);
+            const endTime = now.toISOString().slice(0, 16);
+            
+            document.getElementById('test1-start').value = startTime;
+            document.getElementById('test1-end').value = endTime;
+            
+            document.getElementById('debug1').innerHTML = `
+                <strong>原始时间:</strong><br>
+                oneWeekAgo: ${oneWeekAgo.toISOString()}<br>
+                now: ${now.toISOString()}<br><br>
+                <strong>格式化后:</strong><br>
+                startTime: ${startTime}<br>
+                endTime: ${endTime}<br><br>
+                <strong>实际设置的值:</strong><br>
+                start: ${document.getElementById('test1-start').value}<br>
+                end: ${document.getElementById('test1-end').value}
+            `;
+        }
+        
+        function test2() {
+            const now = new Date();
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(now.getDate() - 7);
+            
+            // 设置时间
+            oneWeekAgo.setHours(0, 0, 0, 0);
+            now.setHours(23, 59, 0, 0);
+            
+            const startTime = formatLocalDateTime(oneWeekAgo);
+            const endTime = formatLocalDateTime(now);
+            
+            document.getElementById('test2-start').value = startTime;
+            document.getElementById('test2-end').value = endTime;
+            
+            document.getElementById('debug2').innerHTML = `
+                <strong>原始时间:</strong><br>
+                oneWeekAgo: ${oneWeekAgo.toISOString()}<br>
+                now: ${now.toISOString()}<br><br>
+                <strong>格式化后:</strong><br>
+                startTime: ${startTime}<br>
+                endTime: ${endTime}<br><br>
+                <strong>实际设置的值:</strong><br>
+                start: ${document.getElementById('test2-start').value}<br>
+                end: ${document.getElementById('test2-end').value}
+            `;
+        }
+        
+        function test3() {
+            const now = new Date();
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(now.getDate() - 7);
+            
+            // 强制设置时间
+            const startTime = `${oneWeekAgo.getFullYear()}-${String(oneWeekAgo.getMonth() + 1).padStart(2, '0')}-${String(oneWeekAgo.getDate()).padStart(2, '0')}T00:00`;
+            const endTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T23:59`;
+            
+            document.getElementById('test3-start').value = startTime;
+            document.getElementById('test3-end').value = endTime;
+            
+            document.getElementById('debug3').innerHTML = `
+                <strong>强制设置的时间:</strong><br>
+                startTime: ${startTime}<br>
+                endTime: ${endTime}<br><br>
+                <strong>实际设置的值:</strong><br>
+                start: ${document.getElementById('test3-start').value}<br>
+                end: ${document.getElementById('test3-end').value}
+            `;
+        }
+        
+        function formatLocalDateTime(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+        
+        // 页面加载时自动运行测试
+        window.onload = function() {
+            test1();
+            test2();
+            test3();
+        };
+    </script>
+</body>
+</html> 
