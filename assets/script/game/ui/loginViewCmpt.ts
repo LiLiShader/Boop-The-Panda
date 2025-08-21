@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, EditBox, Button, Label } from 'cc';
+import { _decorator, Component, Node, EditBox, Button, Label, find } from 'cc';
 import { BaseViewCmpt } from '../../components/baseViewCmpt';
 import { App } from '../../core/app';
 import { EventName } from '../../const/eventName';
@@ -68,6 +68,7 @@ export class LoginViewCmpt extends BaseViewCmpt {
         if (mode === 'login') {
             console.log('登录模式');
             // 登录模式：隐藏昵称输入框
+            find("Content/Title",this.node).getComponent(Label).string = "Game login";
             if (this.nameInput) this.nameInput.node.active = false;
             if (this.loginBtn) this.loginBtn.node.active = true;
             if (this.registerBtn) this.registerBtn.node.active = false;
@@ -76,6 +77,7 @@ export class LoginViewCmpt extends BaseViewCmpt {
         } else {
             console.log('注册模式');
             // 注册模式：显示昵称输入框
+            find("Content/Title",this.node).getComponent(Label).string = "Game register";
             if (this.nameInput) this.nameInput.node.active = false;
             if (this.loginBtn) this.loginBtn.node.active = false;
             if (this.registerBtn) this.registerBtn.node.active = true;
