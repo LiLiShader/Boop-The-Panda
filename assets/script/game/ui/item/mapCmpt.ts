@@ -63,7 +63,7 @@ export class mapCmpt extends ScrollItemCmpt {
         let lv = App.gameLogic.curLevel;
         let idx = (this.index - 1) * 8 + +item.name;
         if (idx > lv) {
-            App.view.showMsgTips("请先完成前面的关卡");
+            App.view.showMsgTips("Please complete the previous levels first");
             return;
         }
         App.view.openView(ViewName.Single.eChallengeView, idx);

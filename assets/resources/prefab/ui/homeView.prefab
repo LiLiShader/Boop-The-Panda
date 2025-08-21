@@ -47623,8 +47623,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 201.2412109375,
-      "height": 79.6
+      "width": 201.2224583911288,
+      "height": 79.59999999999998
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -47662,7 +47662,7 @@
     "_string": "Ranking",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 50,
+    "_actualFontSize": 58.84557721139431,
     "_fontSize": 50,
     "_fontFamily": "Arial",
     "_lineHeight": 60,
@@ -47739,7 +47739,7 @@
     "_target": null,
     "_left": 0,
     "_right": 0,
-    "_top": 21.200000000000045,
+    "_top": 21.200000000000053,
     "_bottom": 0,
     "_horizontalCenter": 0,
     "_verticalCenter": 0,
@@ -49216,8 +49216,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 23.599990844726562,
-      "height": 54.4
+      "width": 23.59729717278936,
+      "height": 54.400000000000006
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -49255,7 +49255,7 @@
     "_string": "1",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 40,
+    "_actualFontSize": 47.07646176911545,
     "_fontSize": 40,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -49396,8 +49396,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 100,
-      "height": 50.4
+      "width": 99.96502666108927,
+      "height": 50.400000000000006
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -49435,7 +49435,7 @@
     "_string": "骑马的波比",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 20,
+    "_actualFontSize": 23.538230884557723,
     "_fontSize": 20,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -49558,8 +49558,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 36.38397216796875,
-      "height": 50.4
+      "width": 36.3763681205215,
+      "height": 50.39999999999999
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -49597,7 +49597,7 @@
     "_string": "999",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 24,
+    "_actualFontSize": 28.245877061469265,
     "_fontSize": 24,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -49720,8 +49720,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 49.47795104980469,
-      "height": 30.240000000000002
+      "width": 49.47403463375796,
+      "height": 30.24
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -49759,7 +49759,7 @@
     "_string": "Level",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 22,
+    "_actualFontSize": 25.892053973013496,
     "_fontSize": 22,
     "_fontFamily": "Arial",
     "_lineHeight": 24,
@@ -49885,8 +49885,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 41.779937744140625,
-      "height": 32.24
+      "width": 41.76605755265351,
+      "height": 32.239999999999995
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -49924,7 +49924,7 @@
     "_string": "1123",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 20,
+    "_actualFontSize": 23.538230884557723,
     "_fontSize": 20,
     "_fontFamily": "Arial",
     "_lineHeight": 24,
@@ -50996,7 +50996,7 @@
         "__id__": 2245
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 2307
@@ -53404,7 +53404,7 @@
     "_string": "20:06",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 37,
+    "_actualFontSize": 43,
     "_fontSize": 36,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -53845,7 +53845,7 @@
     "_string": "1000",
     "_horizontalAlign": 1,
     "_verticalAlign": 1,
-    "_actualFontSize": 37,
+    "_actualFontSize": 43,
     "_fontSize": 36,
     "_fontFamily": "Arial",
     "_lineHeight": 40,
@@ -64946,7 +64946,7 @@
         "__id__": 3350
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 3399
@@ -65312,7 +65312,7 @@
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 1,
-    "_enableOutline": true,
+    "_enableOutline": false,
     "_outlineColor": {
       "__type__": "cc.Color",
       "r": 247,

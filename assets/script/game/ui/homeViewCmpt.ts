@@ -126,7 +126,7 @@ export class homeViewCmpt extends BaseViewCmpt {
 
     /** 滚动到顶端了，给个解锁更多的提示 */
     async scrollingToTop() {
-        App.view.showMsgTips("先完成前面关卡即可解锁更多关卡");
+        App.view.showMsgTips("please complete the previous levels to unlock more levels");
     }
 
     onClick_localBtn() {
