@@ -109,11 +109,6 @@ function initDateTimeInputs() {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(now.getDate() - 7);
     
-    console.log('initDateTimeInputs - 原始时间:', {
-        now: now.toISOString(),
-        oneWeekAgo: oneWeekAgo.toISOString()
-    });
-    
     // 起始时间设为一周前的00:00
     const startTime = formatDateForInput(oneWeekAgo, true);
     startTimeInput.value = startTime;
@@ -121,13 +116,6 @@ function initDateTimeInputs() {
     // 结束时间设为今天的23:59
     const endTime = formatDateForInput(now, false);
     endTimeInput.value = endTime;
-    
-    console.log('initDateTimeInputs - 设置后的时间:', {
-        startTime: startTime,
-        endTime: endTime,
-        startTimeInputValue: startTimeInput.value,
-        endTimeInputValue: endTimeInput.value
-    });
 }
 
 // ==================== 登录管理功能 ====================
@@ -250,32 +238,25 @@ function showLoginMessage(message, type = 'info') {
 
 // 格式化日期为datetime-local输入格式
 function formatDateForInput(date, isStartTime = true) {
-    // 获取本地时间的各个部分
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    // 创建新的日期对象，避免修改原对象
+    const newDate = new Date(date);
     
-    let hours, minutes;
     if (isStartTime) {
         // 起始时间设为00:00
-        hours = '00';
-        minutes = '00';
+        newDate.setHours(0, 0, 0, 0);
     } else {
         // 结束时间设为23:59
-        hours = '23';
-        minutes = '59';
+        newDate.setHours(23, 59, 0, 0);
     }
     
-    const result = `${year}-${month}-${day}T${hours}:${minutes}`;
+    // 使用本地时间格式化，避免时区问题
+    const year = newDate.getFullYear();
+    const month = String(newDate.getMonth() + 1).padStart(2, '0');
+    const day = String(newDate.getDate()).padStart(2, '0');
+    const hours = String(newDate.getHours()).padStart(2, '0');
+    const minutes = String(newDate.getMinutes()).padStart(2, '0');
     
-    // 调试输出
-    console.log(`formatDateForInput: ${isStartTime ? 'start' : 'end'} time`, {
-        originalDate: date,
-        result: result,
-        year, month, day, hours, minutes
-    });
-    
-    return result;
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 // ==================== 支付模式管理功能 ====================
@@ -429,9 +410,6 @@ async function onQueryUser() {
         userInfoDisplay.innerHTML = '<p class="loading">正在加载用户信息...</p>';
         ordersList.innerHTML = '<p class="loading">正在加载订单信息...</p>';
         
-        // 先测试API连接
-        await testAPIConnectivity();
-        
         // 获取用户信息
         const userInfo = await fetchUserInfo(userId);
         
@@ -513,24 +491,11 @@ async function onQueryByTimeRange() {
         const startDate = new Date(startTime + ':00').getTime();
         const endDate = new Date(endTime + ':59').getTime();
         
-        console.log('查询时间范围:', {
-            startTime: new Date(startDate).toISOString(),
-            endTime: new Date(endDate).toISOString()
-        });
-        
         const matchedOrders = allOrders.filter(order => {
             if (!order.pay_time) return false;
             
             // 解析订单时间，转换为本地时间进行比较
             const orderDate = new Date(order.pay_time);
-            
-            console.log('订单时间:', {
-                orderNo: order.order_no,
-                payTime: order.pay_time,
-                orderDateLocal: orderDate.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }),
-                orderDateUTC: orderDate.toISOString(),
-                inRange: orderDate >= startDate && orderDate <= endDate
-            });
             
             return orderDate >= startDate && orderDate <= endDate;
         });
@@ -720,7 +685,7 @@ async function fetchUserInfo(userId) {
                 return data.success ? data.data : null;
             }
         } catch (e) {
-            console.log(`端点1失败: ${endpoint}`, e);
+            // 静默失败，继续尝试下一个端点
         }
         
         // 尝试端点2: /users/${userId}
@@ -732,7 +697,7 @@ async function fetchUserInfo(userId) {
                 return data.success ? data.data : null;
             }
         } catch (e) {
-            console.log(`端点2失败: ${endpoint}`, e);
+            // 静默失败，继续尝试下一个端点
         }
         
         // 尝试端点3: /admin/api/users/${userId} (原始端点)
@@ -744,12 +709,10 @@ async function fetchUserInfo(userId) {
                 return data.success ? data.data : null;
             }
         } catch (e) {
-            console.log(`端点3失败: ${endpoint}`, e);
+            // 静默失败，继续尝试下一个端点
         }
         
         // 所有直接查询端点都失败，尝试降级方案：获取所有用户然后过滤
-        console.log('所有直接查询端点都失败，尝试降级方案：获取所有用户然后过滤');
-        
         try {
             // 获取所有用户
             const allUsers = await fetchAllUsers();
@@ -762,23 +725,19 @@ async function fetchUserInfo(userId) {
                 );
                 
                 if (targetUser) {
-                    console.log('通过降级方案找到用户:', targetUser);
                     return targetUser;
-                } else {
-                    console.log('在所有用户中未找到匹配的用户ID:', userId);
-                    return null;
                 }
             }
         } catch (fallbackError) {
-            console.log('降级方案也失败:', fallbackError);
+            console.error('降级方案失败:', fallbackError);
         }
         
-        // 所有方案都失败，抛出错误
-        throw new Error(`所有API端点都失败，最后尝试的端点: ${endpoint}, 状态: ${response?.status || 'unknown'}`);
+        // 所有方案都失败，返回null
+        return null;
         
     } catch (error) {
         console.error('获取用户信息失败:', error);
-        throw error;
+        return null;
     }
 }
 
@@ -798,7 +757,7 @@ async function fetchUserOrders(userId) {
                 return data.success ? data.data : [];
             }
         } catch (e) {
-            console.log(`获取用户订单端点1失败: ${endpoint}`, e);
+            // 静默失败，继续尝试下一个端点
         }
         
         // 尝试端点2: /payments/user/${userId}
@@ -810,7 +769,7 @@ async function fetchUserOrders(userId) {
                 return data.success ? data.data : [];
             }
         } catch (e) {
-            console.log(`获取用户订单端点2失败: ${endpoint}`, e);
+            // 静默失败，继续尝试下一个端点
         }
         
         // 尝试端点3: /admin/api/payments/user/${userId} (原始端点)
@@ -822,12 +781,10 @@ async function fetchUserOrders(userId) {
                 return data.success ? data.data : [];
             }
         } catch (e) {
-            console.log(`获取用户订单端点3失败: ${endpoint}`, e);
+            // 静默失败，继续尝试下一个端点
         }
         
         // 所有直接查询端点都失败，尝试降级方案：获取所有订单然后过滤
-        console.log('所有直接查询端点都失败，尝试降级方案：获取所有订单然后过滤');
-        
         try {
             // 获取所有订单
             const allOrders = await fetchAllOrders();
@@ -839,19 +796,18 @@ async function fetchUserOrders(userId) {
                     (order.user && (order.user.pid === userId || order.user.username === userId))
                 );
                 
-                console.log(`通过降级方案找到用户订单: ${userOrders.length} 条`);
                 return userOrders;
             }
         } catch (fallbackError) {
-            console.log('降级方案也失败:', fallbackError);
+            console.error('降级方案失败:', fallbackError);
         }
         
-        // 所有方案都失败，抛出错误
-        throw new Error(`所有获取用户订单API端点都失败，最后尝试的端点: ${endpoint}, 状态: ${response?.status || 'unknown'}`);
+        // 所有方案都失败，返回空数组
+        return [];
         
     } catch (error) {
         console.error('获取用户订单失败:', error);
-        throw error;
+        return [];
     }
 }
 
@@ -871,7 +827,7 @@ async function fetchAllOrders() {
                 return data.success ? data.data : [];
             }
         } catch (e) {
-            console.log(`获取所有订单端点1失败: ${endpoint}`, e);
+            // 静默失败，继续尝试下一个端点
         }
         
         // 尝试端点2: /payments
@@ -883,7 +839,7 @@ async function fetchAllOrders() {
                 return data.success ? data.data : [];
             }
         } catch (e) {
-            console.log(`获取所有订单端点2失败: ${endpoint}`, e);
+            // 静默失败，继续尝试下一个端点
         }
         
         // 尝试端点3: /admin/api/payments (原始端点)
@@ -895,15 +851,15 @@ async function fetchAllOrders() {
                 return data.success ? data.data : [];
             }
         } catch (e) {
-            console.log(`获取所有订单端点3失败: ${endpoint}`, e);
+            // 静默失败，继续尝试下一个端点
         }
         
-        // 所有端点都失败，抛出错误
-        throw new Error(`所有获取所有订单API端点都失败，最后尝试的端点: ${endpoint}, 状态: ${response?.status || 'unknown'}`);
+        // 所有端点都失败，返回空数组
+        return [];
         
     } catch (error) {
         console.error('获取所有订单失败:', error);
-        throw error;
+        return [];
     }
 }
 
@@ -923,7 +879,7 @@ async function fetchAllUsers() {
                 return data.success ? data.data : [];
             }
         } catch (e) {
-            console.log(`获取所有用户端点1失败: ${endpoint}`, e);
+            // 静默失败，继续尝试下一个端点
         }
         
         // 尝试端点2: /users
@@ -935,7 +891,7 @@ async function fetchAllUsers() {
                 return data.success ? data.data : [];
             }
         } catch (e) {
-            console.log(`获取所有用户端点2失败: ${endpoint}`, e);
+            // 静默失败，继续尝试下一个端点
         }
         
         // 尝试端点3: /admin/api/users (原始端点)
@@ -947,15 +903,15 @@ async function fetchAllUsers() {
                 return data.success ? data.data : [];
             }
         } catch (e) {
-            console.log(`获取所有用户端点3失败: ${endpoint}`, e);
+            // 静默失败，继续尝试下一个端点
         }
         
-        // 所有端点都失败，抛出错误
-        throw new Error(`所有获取所有用户API端点都失败，最后尝试的端点: ${endpoint}, 状态: ${response?.status || 'unknown'}`);
+        // 所有端点都失败，返回空数组
+        return [];
         
     } catch (error) {
         console.error('获取所有用户失败:', error);
-        throw error;
+        return [];
     }
 }
 
@@ -1240,39 +1196,4 @@ function formatDate(dateString) {
         console.error('格式化日期出错:', error, dateString);
         return dateString;
     }
-} 
-
-// 测试API连接
-async function testAPIConnectivity() {
-    console.log('=== 测试API连接 ===');
-    console.log('API_BASE_URL:', API_BASE_URL);
-    
-    try {
-        // 测试基本连接
-        const response = await fetch(`${API_BASE_URL}/`);
-        console.log('基本连接测试:', response.status, response.statusText);
-    } catch (error) {
-        console.log('基本连接失败:', error.message);
-    }
-    
-    // 测试各个可能的端点
-    const endpoints = [
-        '/api/users',
-        '/users', 
-        '/admin/api/users',
-        '/api/payments',
-        '/payments',
-        '/admin/api/payments'
-    ];
-    
-    for (const endpoint of endpoints) {
-        try {
-            const response = await fetch(`${API_BASE_URL}${endpoint}`);
-            console.log(`${endpoint}: ${response.status} ${response.statusText}`);
-        } catch (error) {
-            console.log(`${endpoint}: 连接失败 - ${error.message}`);
-        }
-    }
-    
-    console.log('=== API连接测试完成 ===');
 } 
