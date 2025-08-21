@@ -120,11 +120,13 @@ export class BuyViewCmpt extends BaseViewCmpt {
             bombBomb: 20,
             bombHor: 20,
             bombAllSame: 10
-        }
+        },
+        // 1美元=1钻石（低门槛购买选项）
+        'itemBtn15': { amount: '1', diamonds: 1 }
     };
 
     onLoad() {
-        for (let i = 1; i < 15; i++) {
+        for (let i = 1; i < 16; i++) {
             this[`onClick_itemBtn${i}`] = this.handleBtnEvent.bind(this);
         }
         super.onLoad();
