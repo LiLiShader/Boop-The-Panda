@@ -59,6 +59,8 @@ export class settingViewCmpt extends BaseViewCmpt {
         
         // 默认隐藏详情面板
         this.hideInfoDetail();
+
+        find("bg/ID",this.node).getComponent(Label).string = "👤 UserID:"+ App.user.currentUser.pid;
     }
 
     // 显示详情面板
