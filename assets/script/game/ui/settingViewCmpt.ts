@@ -332,18 +332,18 @@ ${"diamonds:"+extractedNumbers }
     clickPaymentPolicy() {
         App.audio.play('button_click');
         //跳转到网页
-        window.open('https://game-yjps-5gspem0v9bdab6ef-1308501080.tcloudbaseapp.com/wd/PAYMENT%20POLICY.html', '_blank');
+        window.open('https://thunderousfreeze.com/payment_policy.html', '_blank');
     }
-    //https://game-yjps-5gspem0v9bdab6ef-1308501080.tcloudbaseapp.com/wd/PRIVACY%20POLICY.html
+
     clickPrivacyPolicy() {
         App.audio.play('button_click');
         //跳转到网页
-        window.open('https://game-yjps-5gspem0v9bdab6ef-1308501080.tcloudbaseapp.com/wd/PRIVACY%20POLICY.html', '_blank');
+        window.open('https://thunderousfreeze.com/privacy_policy.html', '_blank');
     }
-    //https://game-yjps-5gspem0v9bdab6ef-1308501080.tcloudbaseapp.com/wd/terms-of-use.html
+
     clickTermsOfUse() {
         App.audio.play('button_click');
         //跳转到网页
-        window.open('https://game-yjps-5gspem0v9bdab6ef-1308501080.tcloudbaseapp.com/wd/terms-of-use.html', '_blank');
+        window.open('https://thunderousfreeze.com/terms_of_use.html', '_blank');
     }
 }
